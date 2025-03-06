@@ -17,17 +17,24 @@ import { IconAlertCircle, IconMail, IconLock } from '@tabler/icons-react';
 import { useAuth } from './AuthContext';
 
 export function LoginForm() {
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login, user, isLoading: authLoading, error: authError } = useAuth();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+  
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      router.push('/');
+    if (user && !authLoading) {
+      router.push('/dashboard');
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [user, authLoading, router]);
+
+  // Update local error state if auth context has an error
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   const form = useForm({
     initialValues: {
@@ -47,9 +54,8 @@ export function LoginForm() {
       setError(null);
       
       await login(values.email, values.password);
-      
-      // Success handling: If login succeeds, the effect will handle redirection
-      console.log('Login successful, redirecting...');
+      // Successful auth -> Redirect to dashboard
+      router.push('/dashboard');
     } catch (err: unknown) {
       // Display specific error message
       let errorMessage: string;
@@ -73,7 +79,6 @@ export function LoginForm() {
           {error}
         </Alert>
       )}
-
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
           <TextInput
@@ -95,7 +100,6 @@ export function LoginForm() {
             radius="md"
             {...form.getInputProps('password')}
           />
-
           <Group justify="space-between">
             <Checkbox
               label="Remember me"
@@ -105,7 +109,6 @@ export function LoginForm() {
               Forgot password?
             </Anchor>
           </Group>
-
           <Button fullWidth size="md" type="submit" loading={loading || authLoading} radius="md">
             Sign in
           </Button>

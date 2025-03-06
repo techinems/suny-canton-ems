@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
   const isPublicPath = publicPaths.some(publicPath => path.startsWith(publicPath));
   
   // Get the token from the cookies
-  const token = request.cookies.get('directus_token')?.value;
+  const token = request.cookies.get('directus_session_token')?.value;
   
   // If the path is not public and there's no token, redirect to login
   if (!isPublicPath && !token) {
