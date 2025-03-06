@@ -1,13 +1,10 @@
 // Import styles of packages that you've installed.
 // All packages except `@mantine/hooks` require styles imports
+'use client';
+
 import '@mantine/core/styles.css';
-
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
-
-export const metadata = {
-  title: 'My Mantine app',
-  description: 'I have followed setup instructions carefully',
-};
+import { AuthProvider } from '@/components/auth/AuthContext';
 
 export default function RootLayout({
   children,
@@ -20,7 +17,9 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider>{children}</MantineProvider>
+        <MantineProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </MantineProvider>
       </body>
     </html>
   );
