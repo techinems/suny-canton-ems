@@ -3,10 +3,12 @@ import { getAuthenticatedUser } from '@/lib/user';
 
 export async function GET() {
   try {
-    const { user } = await getAuthenticatedUser();
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      throw new Error('User not found');
+    }
     return NextResponse.json({ user });
-  } catch (error) {
-    console.error('Error fetching user:', error);
+  } catch {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 }
