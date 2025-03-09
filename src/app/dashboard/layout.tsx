@@ -13,7 +13,6 @@ export default async function DashboardLayout({
   }
   return (
     <div>
-      <h1>Welcome to the Dashboard, {user.first_name}!</h1>
       {children}
     </div>
   );
