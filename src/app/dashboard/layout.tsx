@@ -4,7 +4,14 @@ import { AppShell, Burger, Group, NavLink, Title, Box, rem } from '@mantine/core
 import { useDisclosure } from '@mantine/hooks';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { IconHome, IconPaperclip, IconUsers, IconUser, IconCalendarStats, IconCertificate } from '@tabler/icons-react';
+import { 
+  IconHome, 
+  IconAmbulance, 
+  IconUsers, 
+  IconUser, 
+  IconPackage, 
+  IconCertificate 
+} from '@tabler/icons-react';
 import { ColorSchemeToggle } from '@/components/themeToggle/themeToggle';
 
 export default function DashboardLayout({
@@ -17,10 +24,10 @@ export default function DashboardLayout({
 
   const navLinks = [
     { label: 'Dashboard', href: '/dashboard', icon: <IconHome style={{ width: rem(20) }} /> },
-    { label: 'Calls', href: '/dashboard/calls', icon: <IconPaperclip style={{ width: rem(20) }} /> },
+    { label: 'Calls', href: '/dashboard/calls', icon: <IconAmbulance style={{ width: rem(20) }} /> },
     { label: 'Members', href: '/dashboard/members', icon: <IconUsers style={{ width: rem(20) }} /> },
     { label: 'Certifications', href: '/dashboard/certifications', icon: <IconCertificate style={{ width: rem(20) }} /> },
-    { label: 'Reports', href: '/dashboard/reports', icon: <IconCalendarStats style={{ width: rem(20) }} /> },
+    { label: 'Inventory', href: '/dashboard/inventory', icon: <IconPackage style={{ width: rem(20) }} /> },
     { label: 'Profile', href: '/dashboard/profile', icon: <IconUser style={{ width: rem(20) }} /> },
   ];
 
@@ -40,9 +47,7 @@ export default function DashboardLayout({
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Title order={3}>SUNY Canton EMS</Title>
           </Group>
-          <Group>
-            <ColorSchemeToggle />
-          </Group>
+          <ColorSchemeToggle />
         </Group>
       </AppShell.Header>
 

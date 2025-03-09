@@ -1,18 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { Tabs, Title, Container, Stack, Grid, Box, Paper, Group, Button, Space } from '@mantine/core';
-import { IconPlus, IconCheck, IconUserCircle, IconCertificate } from '@tabler/icons-react';
-import { CallForm } from '@/components/dashboard/CallForm';
+import { Title, Container, Stack, Grid, Box, Paper, Group, Button } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import { CallStats } from '@/components/dashboard/CallStats';
-import { Certifications } from '@/components/dashboard/Certifications';
-import { UserProfile } from '@/components/auth/UserProfile';
 import { useAuth } from '@/components/auth/AuthContext';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<string | null>('overview');
-
+  
   // Sample data for demo purposes
   const callStats = {
     totalCalls: 143,
@@ -59,88 +55,63 @@ export default function Dashboard() {
           )}
         </Group>
 
-        <Tabs value={activeTab} onChange={setActiveTab}>
-          <Tabs.List>
-            <Tabs.Tab value="overview" leftSection={<IconCheck size="0.8rem" />}>
-              Overview
-            </Tabs.Tab>
-            <Tabs.Tab value="create-call" leftSection={<IconPlus size="0.8rem" />}>
-              Create Call
-            </Tabs.Tab>
-            <Tabs.Tab value="certifications" leftSection={<IconCertificate size="0.8rem" />}>
-              Certifications
-            </Tabs.Tab>
-            <Tabs.Tab value="profile" leftSection={<IconUserCircle size="0.8rem" />}>
-              Profile
-            </Tabs.Tab>
-          </Tabs.List>
-
-          <Space h="md" />
-
-          <Tabs.Panel value="overview">
-            <Stack gap="xl">
-              <CallStats 
-                totalCalls={callStats.totalCalls}
-                callsThisMonth={callStats.callsThisMonth}
-                avgResponseTime={callStats.avgResponseTime}
-                activeMembers={callStats.activeMembers}
-              />
-              
-              <Grid>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <Paper withBorder p="md" radius="md" shadow="xs" h="100%">
-                    <Title order={3} mb="md">Recent Calls</Title>
-                    <Box c="dimmed">Recent calls will be displayed here</Box>
+        <Stack gap="xl">
+          <CallStats 
+            totalCalls={callStats.totalCalls}
+            callsThisMonth={callStats.callsThisMonth}
+            avgResponseTime={callStats.avgResponseTime}
+            activeMembers={callStats.activeMembers}
+          />
+          
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Paper withBorder p="md" radius="md" shadow="xs" h="100%">
+                <Title order={3} mb="md">Recent Calls</Title>
+                <Box c="dimmed">Recent calls will be displayed here</Box>
+                <Group justify="center" mt="xl">
+                  <Button 
+                    leftSection={<IconPlus size="1rem" />} 
+                    component={Link} 
+                    href="/dashboard/calls/new"
+                  >
+                    Create New Call
+                  </Button>
+                </Group>
+              </Paper>
+            </Grid.Col>
+            
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Paper withBorder p="md" radius="md" shadow="xs" h="100%">
+                <Title order={3} mb="md">Certification Alerts</Title>
+                {certifications.some(cert => new Date(cert.expiryDate) < new Date() || 
+                  (new Date(cert.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24) <= 90) ? (
+                  <Box>
+                    {certifications
+                      .filter(cert => new Date(cert.expiryDate) < new Date() || 
+                        (new Date(cert.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24) <= 90)
+                      .map(cert => (
+                        <Box key={cert.id} mb="sm">
+                          <strong>{cert.name}</strong>: {new Date(cert.expiryDate) < new Date() ? 
+                            'Expired' : 'Expiring soon'}
+                        </Box>
+                      ))}
                     <Group justify="center" mt="xl">
-                      <Button leftSection={<IconPlus size="1rem" />} onClick={() => setActiveTab('create-call')}>
-                        Create New Call
+                      <Button 
+                        variant="outline"
+                        component={Link}
+                        href="/dashboard/certifications"
+                      >
+                        View All Certifications
                       </Button>
                     </Group>
-                  </Paper>
-                </Grid.Col>
-                
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <Paper withBorder p="md" radius="md" shadow="xs" h="100%">
-                    <Title order={3} mb="md">Certification Alerts</Title>
-                    {certifications.some(cert => new Date(cert.expiryDate) < new Date() || 
-                      (new Date(cert.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24) <= 90) ? (
-                      <Box>
-                        {certifications
-                          .filter(cert => new Date(cert.expiryDate) < new Date() || 
-                            (new Date(cert.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24) <= 90)
-                          .map(cert => (
-                            <Box key={cert.id} mb="sm">
-                              <strong>{cert.name}</strong>: {new Date(cert.expiryDate) < new Date() ? 
-                                'Expired' : 'Expiring soon'}
-                            </Box>
-                          ))}
-                        <Group justify="center" mt="xl">
-                          <Button variant="outline" onClick={() => setActiveTab('certifications')}>
-                            View All Certifications
-                          </Button>
-                        </Group>
-                      </Box>
-                    ) : (
-                      <Box c="dimmed">All certifications are up to date</Box>
-                    )}
-                  </Paper>
-                </Grid.Col>
-              </Grid>
-            </Stack>
-          </Tabs.Panel>
-
-          <Tabs.Panel value="create-call">
-            <CallForm />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="certifications">
-            <Certifications certifications={certifications} />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="profile">
-            <UserProfile />
-          </Tabs.Panel>
-        </Tabs>
+                  </Box>
+                ) : (
+                  <Box c="dimmed">All certifications are up to date</Box>
+                )}
+              </Paper>
+            </Grid.Col>
+          </Grid>
+        </Stack>
       </Stack>
     </Container>
   );
