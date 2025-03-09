@@ -23,7 +23,9 @@ export function CertificationCard({
   const totalDuration = expiryDate.getTime() - issueDate.getTime();
   const remainingTime = expiryDate.getTime() - today.getTime();
   const daysRemaining = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
-  const progressPercentage = 100 - Math.min(100, Math.max(0, (remainingTime / totalDuration) * 100));
+  
+  // Calculate progress percentage with precise rounding to avoid floating point inconsistencies
+  const progressValue = parseFloat((100 - Math.min(100, Math.max(0, (remainingTime / totalDuration) * 100))).toFixed(5));
   
   // Determine status and color
   let status = 'Valid';
@@ -74,7 +76,7 @@ export function CertificationCard({
       </Text>
       
       <Progress 
-        value={progressPercentage} 
+        value={progressValue} 
         color={color}
         size="sm"
         striped={daysRemaining <= 30}
