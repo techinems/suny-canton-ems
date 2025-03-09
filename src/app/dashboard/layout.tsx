@@ -1,8 +1,8 @@
 'use client';
 
-import { AppShell, Burger, Group, NavLink, Title, Box, rem } from '@mantine/core';
+import { AppShell, Burger, Group, NavLink, Title, Box, rem, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { usePathname } from 'next/navigation';
+import { redirect, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
   IconHome, 
@@ -10,9 +10,11 @@ import {
   IconUsers, 
   IconUser, 
   IconPackage, 
-  IconCertificate 
+  IconCertificate,
+  IconLogout
 } from '@tabler/icons-react';
 import { ColorSchemeToggle } from '@/components/themeToggle/themeToggle';
+import { useAuth } from '@/components/auth/AuthContext';
 
 export default function DashboardLayout({
   children,
@@ -21,6 +23,12 @@ export default function DashboardLayout({
 }) {
   const [opened, { toggle }] = useDisclosure();
   const pathname = usePathname();
+  const { logout, user } = useAuth();
+
+  // Only signed in users can access the dashboard
+  if (!user) {
+    redirect('/login');
+  }
 
   const navLinks = [
     { label: 'Dashboard', href: '/dashboard', icon: <IconHome style={{ width: rem(20) }} /> },
@@ -52,25 +60,35 @@ export default function DashboardLayout({
       </AppShell.Header>
 
       <AppShell.Navbar p="md">
-        <Box mb="xl">
-          <Group justify="center" mb="xl">
-            {/* You could add a logo here */}
-          </Group>
-          
+        <Stack h="100%" justify="space-between">
           <Box>
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.href}
-                label={link.label}
-                component={Link}
-                href={link.href}
-                active={pathname === link.href}
-                leftSection={link.icon}
-                mb={8}
-              />
-            ))}
+            <Group justify="center" mb="xl">
+              {/* You could add a logo here */}
+            </Group>
+            
+            <Box>
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.href}
+                  label={link.label}
+                  component={Link}
+                  href={link.href}
+                  active={pathname === link.href}
+                  leftSection={link.icon}
+                  mb={8}
+                />
+              ))}
+            </Box>
           </Box>
-        </Box>
+          
+          <NavLink
+            label="Logout"
+            leftSection={<IconLogout style={{ width: rem(20) }} />}
+            onClick={() => logout()}
+            mb={8}
+            color="red"
+          />
+        </Stack>
       </AppShell.Navbar>
 
       <AppShell.Main>

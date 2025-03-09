@@ -89,7 +89,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Login failed');
       }
+      
       localStorage.setItem('isAuthed', 'true');
+      
+      // Fetch user data immediately after successful login
+      const userResponse = await fetch('/api/user', {
+        credentials: 'same-origin',
+      });
+      
+      if (!userResponse.ok) {
+        throw new Error('Failed to get user data after login');
+      }
+      
+      const userData = await userResponse.json();
+      if (userData.user) {
+        setUser(userData.user as User);
+      } else {
+        throw new Error('User data not found after login');
+      }
+      
     } catch (err: unknown) {
       // Enhanced error handling with more specific messages
       let errorMessage = 'Failed to login';
