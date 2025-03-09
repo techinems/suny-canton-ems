@@ -38,6 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Check local storage for authentication status
+        const isAuthenticated = localStorage.getItem('isAuthed');
+        if (!isAuthenticated) {
+          setUser(null);
+          setIsLoading(false);
+          return;
+        }
         setIsLoading(true);
         // Use our new API route instead of Directus directly
         const response = await fetch('/api/user', {
@@ -55,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         // User is not authenticated
         setUser(null);
+        localStorage.removeItem('isAuthed');
       } finally {
         setIsLoading(false);
       }
@@ -81,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Login failed');
       }
+      localStorage.setItem('isAuthed', 'true');
     } catch (err: unknown) {
       // Enhanced error handling with more specific messages
       let errorMessage = 'Failed to login';
@@ -117,7 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         throw new Error('Logout failed');
       }
-      
+
+      localStorage.removeItem('isAuthed');
       setUser(null);
     } catch (err: unknown) {
       let errorMessage = 'Failed to logout';
