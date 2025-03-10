@@ -2,7 +2,7 @@
 
 import { AppShell, Burger, Group, NavLink, Title, Box, rem, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { redirect, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
   IconHome, 
@@ -23,12 +23,8 @@ export default function DashboardLayout({
 }) {
   const [opened, { toggle }] = useDisclosure();
   const pathname = usePathname();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
 
-  // Only signed in users can access the dashboard
-  if (!user) {
-    redirect('/login');
-  }
 
   const navLinks = [
     { label: 'Dashboard', href: '/dashboard', icon: <IconHome style={{ width: rem(20) }} /> },

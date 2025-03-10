@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { redirect } from 'next/navigation';
 import { 
   TextInput, 
   PasswordInput, 
@@ -17,17 +16,10 @@ import { IconAlertCircle, IconMail, IconLock } from '@tabler/icons-react';
 import { useAuth } from './AuthContext';
 
 export function LoginForm() {
-  const { login, user, isLoading: authLoading, error: authError } = useAuth();
+  const { login, isLoading: authLoading, error: authError } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user && !authLoading) {
-      redirect('/dashboard');
-    }
-  }, [user, authLoading]);
-
   // Update local error state if auth context has an error
   useEffect(() => {
     if (authError) {
@@ -53,8 +45,6 @@ export function LoginForm() {
       setError(null);
       
       await login(values.email, values.password);
-      // Successful auth -> Redirect to dashboard
-      redirect('/dashboard');
     } catch (err: unknown) {
       // Display specific error message
       let errorMessage: string;

@@ -1,7 +1,6 @@
 import client from '@/lib/directus';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { getBaseUrl } from '@/lib/utils';
 
 // Define a more specific type for the error object
 interface DirectusError {
@@ -33,7 +32,7 @@ export async function POST(request: NextRequest) {
             });
         }
         
-        return NextResponse.redirect(new URL('/dashboard', getBaseUrl(request)));
+        return new NextResponse(null, {status: 200});
     } catch (error) {
         console.error(error);
         

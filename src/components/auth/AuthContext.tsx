@@ -1,3 +1,4 @@
+import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 
 // Types for our auth context
@@ -31,6 +32,7 @@ interface ApiError {
 // Provider component that wraps the app and makes auth available to any child component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,8 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
+      router.push('/dashboard');
     }
-  }, []);
+  }, [router]);
 
   const logout = useCallback(async () => {
     try {
@@ -157,8 +160,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(errorMessage);
     } finally {
       setIsLoading(false);
+      router.push('/login');
     }
-  }, []);
+  }, [router]);
 
   // Value provided to consuming components
   const value = {
