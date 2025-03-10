@@ -32,9 +32,7 @@ export async function POST(request: NextRequest) {
             });
         }
         
-        const url = request.nextUrl.clone();
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
+        return NextResponse.redirect(new URL('/dashboard', request.url));
     } catch (error) {
         console.error(error);
         
