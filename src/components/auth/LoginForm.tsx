@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { 
   TextInput, 
   PasswordInput, 
@@ -18,16 +18,15 @@ import { useAuth } from './AuthContext';
 
 export function LoginForm() {
   const { login, user, isLoading: authLoading, error: authError } = useAuth();
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !authLoading) {
-      router.push('/dashboard');
+      redirect('/dashboard');
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading]);
 
   // Update local error state if auth context has an error
   useEffect(() => {
@@ -55,7 +54,7 @@ export function LoginForm() {
       
       await login(values.email, values.password);
       // Successful auth -> Redirect to dashboard
-      router.push('/dashboard');
+      redirect('/dashboard');
     } catch (err: unknown) {
       // Display specific error message
       let errorMessage: string;

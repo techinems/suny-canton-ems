@@ -2,15 +2,14 @@
 
 import { Box, Button, Group, Paper, Text, Title } from '@mantine/core';
 import { useAuth } from './AuthContext';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export function UserProfile() {
   const { user, logout, isLoading } = useAuth();
-  const router = useRouter();
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login');
+    redirect('/login');
   };
 
   if (!user) {
