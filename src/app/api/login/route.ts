@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
             });
         }
         
-        return NextResponse.redirect('/dashboard');
+        return NextResponse.redirect(new URL('/dashboard', request.url));
     } catch (error) {
         console.error(error);
         

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   
   // Clear the auth cookie
@@ -10,5 +10,5 @@ export async function POST() {
     path: '/',
   });
   
-  return NextResponse.redirect('/login');
+  return NextResponse.redirect(new URL('/login', request.url));
 }
