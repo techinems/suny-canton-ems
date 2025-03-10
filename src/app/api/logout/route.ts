@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getBaseUrl } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
@@ -10,5 +11,5 @@ export async function POST(request: NextRequest) {
     path: '/',
   });
   
-  return NextResponse.redirect(new URL('/login', request.url));
+  return NextResponse.redirect(new URL('/login', getBaseUrl(request)));
 }
