@@ -3,8 +3,12 @@
 'use client';
 
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+import '@mantine/dates/styles.css';
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
 import { AuthProvider } from '@/components/auth/AuthContext';
+import { Notifications } from '@mantine/notifications';
+import { ModalsProvider } from '@mantine/modals';
 
 export default function RootLayout({
   children,
@@ -18,7 +22,12 @@ export default function RootLayout({
       </head>
       <body>
         <MantineProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <ModalsProvider>
+              <Notifications />
+              {children}
+            </ModalsProvider>
+          </AuthProvider>
         </MantineProvider>
       </body>
     </html>

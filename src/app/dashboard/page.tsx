@@ -1,9 +1,9 @@
 'use client';
-
 import { Title, Container, Stack, Grid, Box, Paper, Group, Button } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
 import { CallStats } from '@/components/dashboard/CallStats';
 import { useAuth } from '@/components/auth/AuthContext';
+import { InventoryStats } from '@/components/dashboard/InventoryStats';
 import Link from 'next/link';
 
 export default function Dashboard() {
@@ -16,7 +16,6 @@ export default function Dashboard() {
     avgResponseTime: '4m 37s',
     activeMembers: 15,
   };
-
   // Sample certification data
   const certifications = [
     {
@@ -44,7 +43,6 @@ export default function Dashboard() {
       issuingAuthority: 'American Heart Association'
     }
   ];
-
   return (
     <Container fluid>
       <Stack gap="md">
@@ -54,14 +52,21 @@ export default function Dashboard() {
             <Box>Welcome, {user.first_name || user.email}</Box>
           )}
         </Group>
-
         <Stack gap="xl">
-          <CallStats 
-            totalCalls={callStats.totalCalls}
-            callsThisMonth={callStats.callsThisMonth}
-            avgResponseTime={callStats.avgResponseTime}
-            activeMembers={callStats.activeMembers}
-          />
+          <Grid>
+            <Grid.Col span={12}>
+              <CallStats 
+                totalCalls={callStats.totalCalls}
+                callsThisMonth={callStats.callsThisMonth}
+                avgResponseTime={callStats.avgResponseTime}
+                activeMembers={callStats.activeMembers}
+              />
+            </Grid.Col>
+            
+            <Grid.Col span={12}>
+              <InventoryStats />
+            </Grid.Col>
+          </Grid>
           
           <Grid>
             <Grid.Col span={{ base: 12, md: 6 }}>
