@@ -1,5 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { pb, isAuthenticated, getCurrentUser } from '../../lib/client/pocketbase';
 
 // Types for our auth context
 interface User {
@@ -8,7 +9,6 @@ interface User {
   first_name?: string;
   last_name?: string;
   role?: string;
-  [key: string]: unknown; // For any additional fields from Directus
 }
 
 interface AuthContextType {
@@ -22,13 +22,6 @@ interface AuthContextType {
 // Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Define a type for API errors
-interface ApiError {
-  errors?: Array<{ message: string }>;
-  message?: string;
-  [key: string]: unknown;
-}
-
 // Provider component that wraps the app and makes auth available to any child component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -40,31 +33,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Check local storage for authentication status
-        const isAuthenticated = localStorage.getItem('isAuthed');
-        if (!isAuthenticated) {
+        setIsLoading(true);
+        // Use PocketBase's authStore to check authentication status
+        if (!isAuthenticated()) {
           setUser(null);
-          setIsLoading(false);
           return;
         }
-        setIsLoading(true);
-        // Use our new API route instead of Directus directly
-        const response = await fetch('/api/user', {
-          credentials: 'same-origin',
-        });
         
-        if (!response.ok) {
-          throw new Error('Not authenticated');
-        }
-        
-        const data = await response.json();
-        if (data.user) {
-          setUser(data.user as User);
+        // Get user data from PocketBase auth store
+        const pbUser = getCurrentUser();
+        if (pbUser) {
+          // Transform PocketBase user to match our User interface
+          // Avoid duplicate properties by using spread for additional fields
+          setUser({
+            id: pbUser.id,
+            email: pbUser.email,
+            first_name: pbUser.first_name,
+            last_name: pbUser.last_name,
+            role: pbUser.role,
+          });
+        } else {
+          setUser(null);
         }
       } catch {
         // User is not authenticated
         setUser(null);
-        localStorage.removeItem('isAuthed');
       } finally {
         setIsLoading(false);
       }
@@ -78,52 +71,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('password', password);
+      // Use PocketBase authentication
+      const authData = await pb.collection('users').authWithPassword(email, password);
       
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
+      if (authData && authData.record) {
+        // Transform PocketBase user to match our User interface
+        const pbUser = authData.record;
+        setUser({
+          id: pbUser.id,
+          email: pbUser.email,
+          first_name: pbUser.first_name,
+          last_name: pbUser.last_name,
+          role: pbUser.role
+        });
+        
+        // Navigate to dashboard on successful login
+        router.push('/dashboard');
       }
-      
-      localStorage.setItem('isAuthed', 'true');
-      
-      // Fetch user data immediately after successful login
-      const userResponse = await fetch('/api/user', {
-        credentials: 'same-origin',
-      });
-      
-      if (!userResponse.ok) {
-        throw new Error('Failed to get user data after login');
-      }
-      
-      const userData = await userResponse.json();
-      if (userData.user) {
-        setUser(userData.user as User);
-      } else {
-        throw new Error('User data not found after login');
-      }
-      
     } catch (err: unknown) {
-      // Enhanced error handling with more specific messages
       let errorMessage = 'Failed to login';
 
       if (err instanceof Error) {
-        // For standard Error objects
         errorMessage = err.message;
       } else if (typeof err === 'object' && err !== null) {
-        // Handle API error response object
-        const apiError = err as ApiError;
-        if (apiError.errors && apiError.errors.length > 0) {
-          errorMessage = apiError.errors[0].message || 'Authentication failed';
-        } else if (apiError.message) {
-          errorMessage = apiError.message;
+        // Handle PocketBase error response
+        const pbError = err as { message?: string; data?: { message?: string } };
+        if (pbError.message) {
+          errorMessage = pbError.message;
+        } else if (pbError.data?.message) {
+          errorMessage = pbError.data.message;
         }
       }
 
@@ -131,7 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
-      router.push('/dashboard');
     }
   }, [router]);
 
@@ -139,17 +114,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       
-      // Use the API route for logout
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Logout failed');
-      }
-
-      localStorage.removeItem('isAuthed');
+      // Use PocketBase logout
+      pb.authStore.clear();
       setUser(null);
+      
+      // Navigate to login page after logout
+      router.push('/login');
     } catch (err: unknown) {
       let errorMessage = 'Failed to logout';
       
@@ -160,7 +130,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(errorMessage);
     } finally {
       setIsLoading(false);
-      router.push('/login');
     }
   }, [router]);
 
