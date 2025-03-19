@@ -1,44 +1,56 @@
 'use client';
 
-import { Title, Container } from '@mantine/core';
+import { useState, useEffect } from 'react';
+import { Title, Container, Loader, Center, Alert } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { Certifications } from '@/components/dashboard/Certifications';
+import { getUserCertifications, Certification } from '@/lib/client/certificationService';
 
 export default function CertificationsPage() {
-  // Sample certification data - in a real app, this would come from your API
-  const certifications = [
-    {
-      id: '1',
-      name: 'EMT-Basic',
-      expiryDate: new Date(2024, 11, 15), // December 15, 2024
-      issueDate: new Date(2022, 11, 15),  // December 15, 2022
-      certificationNumber: 'EMT-123456',
-      issuingAuthority: 'NY State Dept of Health'
-    },
-    {
-      id: '2',
-      name: 'CPR/AED for Healthcare Providers',
-      expiryDate: new Date(2023, 10, 30), // November 30, 2023 (expired)
-      issueDate: new Date(2021, 10, 30),  // November 30, 2021
-      certificationNumber: 'CPR-789012',
-      issuingAuthority: 'American Heart Association'
-    },
-    {
-      id: '3',
-      name: 'Advanced Cardiac Life Support',
-      expiryDate: new Date(new Date().getTime() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
-      issueDate: new Date(2022, 5, 15), // June 15, 2022
-      certificationNumber: 'ACLS-345678',
-      issuingAuthority: 'American Heart Association'
-    },
-    {
-      id: '4',
-      name: 'Pediatric Advanced Life Support',
-      expiryDate: new Date(2025, 2, 10), // March 10, 2025
-      issueDate: new Date(2023, 2, 10), // March 10, 2023
-      certificationNumber: 'PALS-567890',
-      issuingAuthority: 'American Heart Association'
-    },
-  ];
+  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCertifications = async () => {
+      try {
+        setLoading(true);    
+        setCertifications(await getUserCertifications());
+      } catch (err) {
+        console.error('Error fetching certifications:', err);
+        setError('Failed to load certifications. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCertifications();
+  }, []);
+
+  if (loading) {
+    return (
+      <Container fluid>
+        <Center h={200}>
+          <Loader size="lg" />
+        </Center>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container fluid>
+        <Alert
+          icon={<IconAlertCircle size="1rem" />}
+          title="Error"
+          color="red"
+          variant="filled"
+        >
+          {error}
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container fluid>

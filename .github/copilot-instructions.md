@@ -1,3 +1,3 @@
-This is a Next.js application that uses Mantine for its UI components. It also uses tabler for its icons. All components are stored in src/components. Pocketbase is used for the data store.
+This is a Next.js application that uses Mantine for its UI components. It also uses tabler for its icons. All components are stored in src/components. Pocketbase is used for the data store. Pocketbase should whenever possible be interacted with on the client only. It is not really meant for server side operations. If absolutely necessary for server side applications the client in lib/server must be used. Otherwise the lib/client implementation should be used.
 
 The purpose of this application is to create a web app for an EMS organization that allows for managing certifications, calls, and inventory.

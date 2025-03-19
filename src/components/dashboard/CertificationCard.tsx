@@ -1,37 +1,31 @@
 'use client';
 
-import { Paper, Text, Group, Badge, Progress, ThemeIcon } from '@mantine/core';
-import { IconCertificate } from '@tabler/icons-react';
+import { Paper, Text, Group, Badge, Progress, ThemeIcon, Button, Anchor } from '@mantine/core';
+import { IconCertificate, IconDownload } from '@tabler/icons-react';
+import { Certification, getFileUrl, formatCertificationDates } from '@/lib/client/certificationService';
 
-interface CertificationCardProps {
-  name: string;
-  expiryDate: Date;
-  issueDate: Date;
-  certificationNumber?: string;
-  issuingAuthority?: string;
-}
-
-export function CertificationCard({
-  name,
-  expiryDate,
-  issueDate,
-  certificationNumber,
-  issuingAuthority,
-}: CertificationCardProps) {
+export function CertificationCard({ cert }: {cert: Certification}) {
+  // Get formatted dates from the certification object
+  const { expiryDate, issueDate } = formatCertificationDates(cert);
+  
   // Calculate days remaining and progress percentage
   const today = new Date();
-  const totalDuration = expiryDate.getTime() - issueDate.getTime();
-  const remainingTime = expiryDate.getTime() - today.getTime();
-  const daysRemaining = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+  const totalDuration = expiryDate && issueDate ? 
+    expiryDate.getTime() - issueDate.getTime() : 0;
+  const remainingTime = expiryDate ? 
+    expiryDate.getTime() - today.getTime() : 0;
+  const daysRemaining = expiryDate ? 
+    Math.ceil(remainingTime / (1000 * 60 * 60 * 24)) : 0;
   
-  // Calculate progress percentage with precise rounding to avoid floating point inconsistencies
-  const progressValue = parseFloat((100 - Math.min(100, Math.max(0, (remainingTime / totalDuration) * 100))).toFixed(5));
+  // Calculate progress percentage - representing the time remaining (not elapsed)
+  const progressValue = totalDuration > 0 ? 
+    parseFloat(Math.min(100, Math.max(0, (remainingTime / totalDuration) * 100)).toFixed(1)) : 0;
   
   // Determine status and color
   let status = 'Valid';
   let color = 'green';
   
-  if (daysRemaining <= 0) {
+  if (!expiryDate || daysRemaining <= 0) {
     status = 'Expired';
     color = 'red';
   } else if (daysRemaining <= 30) {
@@ -49,30 +43,29 @@ export function CertificationCard({
           <ThemeIcon color="blue" variant="light" size="md" radius="md">
             <IconCertificate size="1.2rem" />
           </ThemeIcon>
-          <Text fw={700}>{name}</Text>
+          <Text fw={700}>{cert.cert_name}</Text>
         </Group>
-        <Badge color={color}>{status}</Badge>
       </Group>
       
-      {issuingAuthority && (
+      {cert.issuing_authority && (
         <Text size="sm" c="dimmed" mb={5}>
-          Issued by: {issuingAuthority}
+          Issued by: {cert.issuing_authority}
         </Text>
       )}
       
-      {certificationNumber && (
+      {cert.cert_number && (
         <Text size="sm" c="dimmed" mb="xs">
-          Certificate #: {certificationNumber}
+          Certificate #: {cert.cert_number}
         </Text>
       )}
 
       <Text size="sm" mb={5}>
-        Issued: {issueDate.toLocaleDateString()}
+        Issued: {issueDate ? issueDate.toLocaleDateString() : 'Not specified'}
       </Text>
       
       <Text size="sm" mb="xs">
-        Expires: {expiryDate.toLocaleDateString()} 
-        {daysRemaining > 0 ? ` (${daysRemaining} days remaining)` : ' (EXPIRED)'}
+        Expires: {expiryDate ? expiryDate.toLocaleDateString() : 'Not specified'} 
+        {expiryDate && daysRemaining > 0 ? ` (${daysRemaining} days remaining)` : expiryDate ? ' (EXPIRED)' : ''}
       </Text>
       
       <Progress 
@@ -81,7 +74,24 @@ export function CertificationCard({
         size="sm"
         striped={daysRemaining <= 30}
         animated={daysRemaining <= 30}
+        mb={cert.cert_scan ? "xs" : undefined}
       />
+
+      <Group justify="space-between" mt="xs">
+        <Badge color={color}>{status}</Badge>
+        
+        {cert.cert_scan && cert.id && (
+          <Anchor href={getFileUrl(cert.id, cert.cert_scan.toString())} target="_blank" download>
+            <Button 
+              variant="light" 
+              size="xs" 
+              leftSection={<IconDownload size="1rem" />}
+            >
+              Download Certificate
+            </Button>
+          </Anchor>
+        )}
+      </Group>
     </Paper>
   );
 }
