@@ -98,7 +98,7 @@ export const getFullName = (member: Member): string => {
 // Function to get avatar URL
 export const getMemberAvatarUrl = (member: Member): string => {
   if (member.avatar) {
-    return pb.files.getUrl(member, member.avatar);
+    return pb.files.getURL(member, member.avatar);
   }
   return ''; // Return empty string or a default avatar URL
 };
