@@ -11,11 +11,9 @@ import {
   Button,
   Loader,
   Center,
-  Box,
   Modal,
-  Flex
 } from '@mantine/core';
-import { IconDotsVertical, IconEdit, IconTrash, IconUserPlus } from '@tabler/icons-react';
+import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import Link from 'next/link';
 import { Member, getAllMembers, getMemberAvatarUrl, getFullName } from '@/lib/client/memberService';
@@ -81,18 +79,6 @@ export function MemberList() {
 
   return (
     <>
-      <Box mb="md">
-        <Flex justify="flex-end">
-          <Button 
-            component={Link} 
-            href="/dashboard/members/new" 
-            leftSection={<IconUserPlus size="1rem" />}
-          >
-            Add Member
-          </Button>
-        </Flex>
-      </Box>
-
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
