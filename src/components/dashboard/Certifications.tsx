@@ -13,8 +13,9 @@ interface CertificationsProps {
   certifications: Certification[];
 }
 
-export function Certifications({ certifications }: CertificationsProps) {
+export function Certifications({ certifications: initialCertifications }: CertificationsProps) {
   const router = useRouter();
+  const [certifications, setCertifications] = useState<Certification[]>(initialCertifications);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
@@ -55,6 +56,11 @@ export function Certifications({ certifications }: CertificationsProps) {
       setDeleteLoading(true);
       await deleteCertification(deleteId);
       
+      // Update local state to remove the deleted certification
+      setCertifications(prevCertifications => 
+        prevCertifications.filter(cert => cert.id !== deleteId)
+      );
+      
       notifications.show({
         title: 'Certification Deleted',
         message: 'The certification has been successfully deleted.',
@@ -62,7 +68,6 @@ export function Certifications({ certifications }: CertificationsProps) {
       });
       
       close();
-      // Force refresh the page to update the list
       router.refresh();
     } catch (error) {
       console.error('Error deleting certification:', error);
