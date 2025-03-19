@@ -10,14 +10,6 @@ import Link from 'next/link';
 export default function Dashboard() {
   const { user } = useAuth();
   
-  // Sample data for demo purposes
-  const callStats = {
-    totalCalls: 143,
-    callsThisMonth: 12,
-    avgResponseTime: '4m 37s',
-    activeMembers: 15,
-  };
-
   return (
     <Container fluid>
       <Stack gap="md">
@@ -30,15 +22,12 @@ export default function Dashboard() {
         <Stack gap="xl">
           <Grid>
             <Grid.Col span={12}>
-              <CallStats 
-                totalCalls={callStats.totalCalls}
-                callsThisMonth={callStats.callsThisMonth}
-                avgResponseTime={callStats.avgResponseTime}
-                activeMembers={callStats.activeMembers}
-              />
+              <Title order={3} mb="sm">Call Statistics</Title>
+              <CallStats />
             </Grid.Col>
             
             <Grid.Col span={12}>
+              <Title order={3} mb="sm">Inventory Overview</Title>
               <InventoryStats />
             </Grid.Col>
           </Grid>

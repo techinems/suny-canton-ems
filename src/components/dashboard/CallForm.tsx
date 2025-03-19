@@ -1,166 +1,293 @@
-'use client';
-
-import { useState } from 'react';
-import { 
-  TextInput, 
-  Textarea, 
-  Button, 
-  Group, 
-  Select, 
-  Paper, 
-  Title, 
-  Stack, 
-  NumberInput,
-  Notification
-} from '@mantine/core';
+import { Paper, TextInput, Button, Group, Textarea, Alert, LoadingOverlay, Stack, Checkbox, Select, MultiSelect } from '@mantine/core';
+import { DateTimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
-import { IconCheck, IconCalendar, IconClock } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
+import { getCallLog, updateCallLog, createCallLog } from '@/lib/client/callService';
+import { getInventoryItems } from '@/lib/client/inventoryService';
+import { getAllMembers, Member } from '@/lib/client/memberService';
+import { notifications } from '@mantine/notifications';
+import { IconDeviceFloppy } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 
-const CALL_TYPES = [
-  { value: 'medical', label: 'Medical Emergency' },
-  { value: 'trauma', label: 'Trauma' },
-  { value: 'transport', label: 'Transport' },
-  { value: 'standby', label: 'Standby' },
-  { value: 'other', label: 'Other' }
-];
+interface CallFormProps {
+  callId?: string;
+  isEditing?: boolean;
+}
 
-const PRIORITY_LEVELS = [
-  { value: '1', label: '1 - Critical' },
-  { value: '2', label: '2 - Urgent' },
-  { value: '3', label: '3 - Non-urgent' },
-  { value: '4', label: '4 - Minor' }
-];
-
-export function CallForm() {
-  const [submitted, setSubmitted] = useState(false);
+export function CallForm({ callId, isEditing = false }: CallFormProps) {
+  const router = useRouter();
+  
+  const [loading, setLoading] = useState(isEditing);
+  const [error, setError] = useState<string | null>(null);
+  const [inventoryItems, setInventoryItems] = useState<{value: string, label: string}[]>([]);
+  const [members, setMembers] = useState<{value: string, label: string}[]>([]);
 
   const form = useForm({
     initialValues: {
-      callType: '',
-      priorityLevel: '',
+      call_received: new Date(),
+      call_enroute: new Date(),
+      on_scene: new Date(),
+      back_in_service: new Date(),
+      level_of_care: 'EMT' as 'EMT' | 'None',
+      dispatch_info: '',
       location: '',
-      patientName: '',
-      patientAge: null as number | null,
-      chiefComplaint: '',
-      description: '',
-      callDateTime: new Date(),
+      jumpbag_used: false,
+      type: undefined as 'Standby' | undefined,
+      items_used: [] as string[],
+      crew: [] as string[],
+      comments: '',
+      status: undefined as 'Cancelled enroute' | 'Complete' | undefined,
     },
     validate: {
-      callType: (value) => !value ? 'Call type is required' : null,
-      priorityLevel: (value) => !value ? 'Priority level is required' : null,
-      location: (value) => !value ? 'Location is required' : null,
-      chiefComplaint: (value) => !value ? 'Chief complaint is required' : null,
-    },
+      location: (value) => value.trim().length === 0 ? 'Location is required' : null,
+      call_received: (value) => value ? null : 'Call received time is required',
+      call_enroute: (value) => value ? null : 'Call enroute time is required',
+      on_scene: (value) => value ? null : 'On scene time is required',
+      back_in_service: (value) => value ? null : 'Back in service time is required',
+    }
   });
 
-  const handleSubmit = (values: typeof form.values) => {
-    // Here you would typically send this data to your API
-    console.log('Form submitted with values:', values);
+  useEffect(() => {
+    async function loadCall() {
+      if (!isEditing || !callId) return;
+      
+      try {
+        setLoading(true);
+        const loadedCall = await getCallLog(callId);
+        
+        // Parse dates from strings to Date objects for form
+        form.setValues({
+          ...loadedCall,
+          call_received: new Date(loadedCall.call_received),
+          call_enroute: new Date(loadedCall.call_enroute),
+          on_scene: new Date(loadedCall.on_scene),
+          back_in_service: new Date(loadedCall.back_in_service),
+          items_used: loadedCall.items_used || [],
+          crew: loadedCall.crew || [],
+        });
+        
+        setError(null);
+      } catch (error) {
+        console.error('Error loading call log:', error);
+        setError('Failed to load call log. It might not exist or you may not have permission to view it.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function loadInventoryItems() {
+      try {
+        const items = await getInventoryItems();
+        setInventoryItems(items.map(item => ({
+          value: item.id,
+          label: item.item_name
+        })));
+      } catch (error) {
+        console.error('Error loading inventory items:', error);
+      }
+    }
+
+    async function loadMembers() {
+      try {
+        const membersList = await getAllMembers();
+        setMembers(membersList.map((member: Member) => ({
+          value: member.id,
+          label: `${member.first_name} ${member.last_name}`
+        })));
+      } catch (error) {
+        console.error('Error loading members:', error);
+      }
+    }
     
-    // Show success notification
-    setSubmitted(true);
-    
-    // Reset form after a short delay
-    setTimeout(() => {
-      form.reset();
-      setSubmitted(false);
-    }, 3000);
+    loadCall();
+    loadInventoryItems();
+    loadMembers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callId, isEditing]);
+
+  const handleSubmit = async (values: typeof form.values) => {
+    try {
+      // Convert dates to ISO strings for PocketBase
+      const callData = {
+        ...values,
+        call_received: values.call_received.toISOString(),
+        call_enroute: values.call_enroute.toISOString(),
+        on_scene: values.on_scene.toISOString(),
+        back_in_service: values.back_in_service.toISOString(),
+      };
+
+      if (isEditing && callId) {
+        await updateCallLog(callId, callData);
+        notifications.show({
+          title: 'Success',
+          message: 'Call log updated successfully',
+          color: 'green',
+        });
+      } else {
+        await createCallLog(callData);
+        notifications.show({
+          title: 'Success',
+          message: 'Call log created successfully',
+          color: 'green',
+        });
+        router.push('/dashboard/calls');
+      }
+    } catch (error) {
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} call log:`, error);
+      notifications.show({
+        title: 'Error',
+        message: `Failed to ${isEditing ? 'update' : 'create'} call log`,
+        color: 'red',
+      });
+    }
   };
 
   return (
-    <Paper withBorder p="md" radius="md" shadow="xs">
-      <Stack>
-        <Title order={3}>Create New Call</Title>
-
-        {submitted && (
-          <Notification
-            icon={<IconCheck size="1.2rem" />}
-            color="green"
-            title="Call Created"
-            onClose={() => setSubmitted(false)}
-          >
-            The call has been successfully created
-          </Notification>
-        )}
-
+    <Paper withBorder p="md" radius="md" shadow="xs" pos="relative">
+      <LoadingOverlay visible={loading} />
+      
+      {error && (
+        <Alert title="Error" color="red" mb="md">
+          {error}
+        </Alert>
+      )}
+      
+      {(!loading || !isEditing) && (
         <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
-            {/* Temporarily using a simple input while @mantine/dates is not available */}
-            <TextInput
-              label="Call Date & Time"
-              placeholder="Select date and time"
-              leftSection={<IconCalendar size="1rem" />}
-              rightSection={<IconClock size="1rem" />}
-              {...form.getInputProps('callDateTime')}
-              required
-            />
-            
-            <Group grow>
-              <Select
-                label="Call Type"
-                placeholder="Select call type"
-                data={CALL_TYPES}
-                {...form.getInputProps('callType')}
-                required
-              />
-              
-              <Select
-                label="Priority Level"
-                placeholder="Select priority"
-                data={PRIORITY_LEVELS}
-                {...form.getInputProps('priorityLevel')}
-                required
-              />
-            </Group>
-            
+          <Stack gap="md">
             <TextInput
               label="Location"
               placeholder="Enter call location"
-              {...form.getInputProps('location')}
               required
+              {...form.getInputProps('location')}
             />
             
             <Group grow>
-              <TextInput
-                label="Patient Name"
-                placeholder="Enter patient name (if known)"
-                {...form.getInputProps('patientName')}
+              <DateTimePicker
+                label="Call Received"
+                placeholder="Select date and time"
+                required
+                clearable={false}
+                {...form.getInputProps('call_received')}
               />
               
-              <NumberInput
-                label="Patient Age"
-                placeholder="Enter patient age"
-                {...form.getInputProps('patientAge')}
-                min={0}
-                max={120}
+              <DateTimePicker
+                label="Enroute"
+                placeholder="Select date and time"
+                required
+                clearable={false}
+                {...form.getInputProps('call_enroute')}
+              />
+            </Group>
+            
+            <Group grow>
+              <DateTimePicker
+                label="On Scene"
+                placeholder="Select date and time"
+                required
+                clearable={false}
+                {...form.getInputProps('on_scene')}
+              />
+              
+              <DateTimePicker
+                label="Back in Service"
+                placeholder="Select date and time"
+                required
+                clearable={false}
+                {...form.getInputProps('back_in_service')}
+              />
+            </Group>
+            
+            <Group grow>
+              <Select
+                label="Level of Care"
+                placeholder="Select level of care"
+                required
+                data={[
+                  { value: 'EMT', label: 'EMT' },
+                  { value: 'None', label: 'None' }
+                ]}
+                {...form.getInputProps('level_of_care')}
+              />
+              
+              <Select
+                label="Call Type"
+                placeholder="Select call type"
+                data={[
+                  { value: 'Standby', label: 'Standby' }
+                ]}
+                clearable
+                {...form.getInputProps('type')}
+              />
+            </Group>
+            
+            <Group grow>
+              <Select
+                label="Status"
+                placeholder="Select call status"
+                data={[
+                  { value: 'Complete', label: 'Complete' },
+                  { value: 'Cancelled enroute', label: 'Cancelled enroute' }
+                ]}
+                clearable
+                {...form.getInputProps('status')}
+              />
+              
+              <Checkbox
+                label="Jump bag used"
+                mt="md"
+                {...form.getInputProps('jumpbag_used', { type: 'checkbox' })}
               />
             </Group>
             
             <TextInput
-              label="Chief Complaint"
-              placeholder="Enter chief complaint"
-              {...form.getInputProps('chiefComplaint')}
-              required
+              label="Dispatch Information"
+              placeholder="Enter dispatch information"
+              {...form.getInputProps('dispatch_info')}
+            />
+            
+            <MultiSelect
+              label="Items Used"
+              placeholder="Select items used during the call"
+              data={inventoryItems}
+              searchable
+              clearable
+              {...form.getInputProps('items_used')}
+            />
+            
+            <MultiSelect
+              label="Crew Members"
+              placeholder="Select crew members on the call"
+              data={members}
+              searchable
+              clearable
+              {...form.getInputProps('crew')}
             />
             
             <Textarea
-              label="Description"
-              placeholder="Enter detailed description of the call"
-              rows={4}
-              {...form.getInputProps('description')}
+              label="Comments"
+              placeholder="Enter any additional comments"
+              minRows={3}
+              {...form.getInputProps('comments')}
             />
             
-            <Group justify="flex-end" mt="md">
-              <Button variant="outline" onClick={() => form.reset()}>
-                Reset
+            <Group justify="flex-end" mt="xl">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard/calls')}
+              >
+                Cancel
               </Button>
-              <Button type="submit">
-                Create Call
+              <Button 
+                type="submit"
+                leftSection={<IconDeviceFloppy size="1rem" />}
+              >
+                {isEditing ? 'Save Changes' : 'Save Call'}
               </Button>
             </Group>
           </Stack>
         </form>
-      </Stack>
+      )}
     </Paper>
   );
 }
