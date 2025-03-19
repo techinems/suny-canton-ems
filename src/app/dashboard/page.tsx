@@ -4,6 +4,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { CallStats } from '@/components/dashboard/CallStats';
 import { useAuth } from '@/components/auth/AuthContext';
 import { InventoryStats } from '@/components/dashboard/InventoryStats';
+import { CertificationAlerts } from '@/components/dashboard/CertificationAlerts';
 import Link from 'next/link';
 
 export default function Dashboard() {
@@ -16,33 +17,7 @@ export default function Dashboard() {
     avgResponseTime: '4m 37s',
     activeMembers: 15,
   };
-  // Sample certification data
-  const certifications = [
-    {
-      id: '1',
-      name: 'EMT-Basic',
-      expiryDate: new Date(2024, 11, 15), // December 15, 2024
-      issueDate: new Date(2022, 11, 15),  // December 15, 2022
-      certificationNumber: 'EMT-123456',
-      issuingAuthority: 'NY State Dept of Health'
-    },
-    {
-      id: '2',
-      name: 'CPR/AED for Healthcare Providers',
-      expiryDate: new Date(2023, 10, 30), // November 30, 2023 (expired)
-      issueDate: new Date(2021, 10, 30),  // November 30, 2021
-      certificationNumber: 'CPR-789012',
-      issuingAuthority: 'American Heart Association'
-    },
-    {
-      id: '3',
-      name: 'Advanced Cardiac Life Support',
-      expiryDate: new Date(new Date().getTime() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
-      issueDate: new Date(2022, 5, 15), // June 15, 2022
-      certificationNumber: 'ACLS-345678',
-      issuingAuthority: 'American Heart Association'
-    }
-  ];
+
   return (
     <Container fluid>
       <Stack gap="md">
@@ -88,31 +63,7 @@ export default function Dashboard() {
             <Grid.Col span={{ base: 12, md: 6 }}>
               <Paper withBorder p="md" radius="md" shadow="xs" h="100%">
                 <Title order={3} mb="md">Certification Alerts</Title>
-                {certifications.some(cert => new Date(cert.expiryDate) < new Date() || 
-                  (new Date(cert.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24) <= 90) ? (
-                  <Box>
-                    {certifications
-                      .filter(cert => new Date(cert.expiryDate) < new Date() || 
-                        (new Date(cert.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24) <= 90)
-                      .map(cert => (
-                        <Box key={cert.id} mb="sm">
-                          <strong>{cert.name}</strong>: {new Date(cert.expiryDate) < new Date() ? 
-                            'Expired' : 'Expiring soon'}
-                        </Box>
-                      ))}
-                    <Group justify="center" mt="xl">
-                      <Button 
-                        variant="outline"
-                        component={Link}
-                        href="/dashboard/certifications"
-                      >
-                        View All Certifications
-                      </Button>
-                    </Group>
-                  </Box>
-                ) : (
-                  <Box c="dimmed">All certifications are up to date</Box>
-                )}
+                <CertificationAlerts />
               </Paper>
             </Grid.Col>
           </Grid>

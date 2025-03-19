@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Title, Container, Loader, Center, Alert } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { Title, Container, Loader, Center, Alert, Group, Button } from '@mantine/core';
+import { IconAlertCircle, IconPlus } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 import { Certifications } from '@/components/dashboard/Certifications';
 import { getUserCertifications, Certification } from '@/lib/client/certificationService';
 
@@ -10,6 +11,7 @@ export default function CertificationsPage() {
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchCertifications = async () => {
@@ -26,6 +28,10 @@ export default function CertificationsPage() {
 
     fetchCertifications();
   }, []);
+
+  const handleAddCertification = () => {
+    router.push('/dashboard/certifications/new');
+  };
 
   if (loading) {
     return (
@@ -54,7 +60,15 @@ export default function CertificationsPage() {
 
   return (
     <Container fluid>
-      <Title order={2} mb="xl">Your Certifications</Title>
+      <Group justify="space-between" mb="xl">
+        <Title order={2}>Your Certifications</Title>
+        <Button 
+          leftSection={<IconPlus size="1rem" />} 
+          onClick={handleAddCertification}
+        >
+          Add Certification
+        </Button>
+      </Group>
       <Certifications certifications={certifications} />
     </Container>
   );

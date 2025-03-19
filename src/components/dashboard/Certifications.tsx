@@ -1,8 +1,8 @@
 'use client';
 
-import { Title, SimpleGrid, Alert, Stack, Group, Button, Modal, Text, Menu, ActionIcon } from '@mantine/core';
+import { SimpleGrid, Alert, Stack, Group, Button, Modal, Text, Menu, ActionIcon } from '@mantine/core';
 import { useState } from 'react';
-import { IconAlertCircle, IconPlus, IconEdit, IconTrash, IconDotsVertical } from '@tabler/icons-react';
+import { IconAlertCircle, IconEdit, IconTrash, IconDotsVertical } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -35,10 +35,6 @@ export function Certifications({ certifications: initialCertifications }: Certif
     const { expiryDate } = formatCertificationDates(cert);
     return expiryDate ? expiryDate < today : false;
   });
-
-  const handleAddCertification = () => {
-    router.push('/dashboard/certifications/new');
-  };
 
   const handleEditCertification = (id: string) => {
     router.push(`/dashboard/certifications/${id}`);
@@ -83,16 +79,6 @@ export function Certifications({ certifications: initialCertifications }: Certif
 
   return (
     <Stack gap="md">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>Your Certifications</Title>
-        <Button 
-          leftSection={<IconPlus size="1rem" />}
-          onClick={handleAddCertification}
-        >
-          Add Certification
-        </Button>
-      </Group>
-
       {expiredCertifications.length > 0 && (
         <Alert
           icon={<IconAlertCircle size="1rem" />}
