@@ -16,9 +16,6 @@ import {
 import { useForm } from '@mantine/form';
 import { IconCheck, IconCalendar, IconClock } from '@tabler/icons-react';
 
-// Note: To use DatePicker, you need to install @mantine/dates:
-// npm install @mantine/dates dayjs
-
 const CALL_TYPES = [
   { value: 'medical', label: 'Medical Emergency' },
   { value: 'trauma', label: 'Trauma' },

@@ -11,9 +11,9 @@ import {
   FileInput,
   PasswordInput,
   Grid,
-  Divider,
   Paper,
-  Avatar
+  Avatar,
+  Accordion
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useRouter } from 'next/navigation';
@@ -164,254 +164,276 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
             </Group>
           )}
 
-          <Divider label="Basic Information" labelPosition="center" />
-          
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <TextInput
-                label="First Name"
-                placeholder="First Name"
-                value={member.first_name || ''}
-                onChange={(e) => handleChange('first_name', e.target.value)}
-                error={errors.first_name}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <TextInput
-                label="Last Name"
-                placeholder="Last Name"
-                value={member.last_name || ''}
-                onChange={(e) => handleChange('last_name', e.target.value)}
-                error={errors.last_name}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <TextInput
-                label="Preferred Name"
-                placeholder="Preferred Name (optional)"
-                value={member.preferred_name || ''}
-                onChange={(e) => handleChange('preferred_name', e.target.value)}
-              />
-            </Grid.Col>
-          </Grid>
+          <Accordion defaultValue="basic" variant="separated">
+            <Accordion.Item value="basic">
+              <Accordion.Control>Basic Information</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="First Name"
+                        placeholder="First Name"
+                        value={member.first_name || ''}
+                        onChange={(e) => handleChange('first_name', e.target.value)}
+                        error={errors.first_name}
+                        required
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="Last Name"
+                        placeholder="Last Name"
+                        value={member.last_name || ''}
+                        onChange={(e) => handleChange('last_name', e.target.value)}
+                        error={errors.last_name}
+                        required
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="Preferred Name"
+                        placeholder="Preferred Name (optional)"
+                        value={member.preferred_name || ''}
+                        onChange={(e) => handleChange('preferred_name', e.target.value)}
+                      />
+                    </Grid.Col>
+                  </Grid>
 
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput
-                label="Email"
-                placeholder="Email"
-                value={member.email || ''}
-                onChange={(e) => handleChange('email', e.target.value)}
-                error={errors.email}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput
-                label="Canton Email"
-                placeholder="Canton Email (optional)"
-                value={member.canton_email || ''}
-                onChange={(e) => handleChange('canton_email', e.target.value)}
-                error={errors.canton_email}
-              />
-            </Grid.Col>
-          </Grid>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Email"
+                        placeholder="Email"
+                        value={member.email || ''}
+                        onChange={(e) => handleChange('email', e.target.value)}
+                        error={errors.email}
+                        required
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Canton Email"
+                        placeholder="Canton Email (optional)"
+                        value={member.canton_email || ''}
+                        onChange={(e) => handleChange('canton_email', e.target.value)}
+                        error={errors.canton_email}
+                      />
+                    </Grid.Col>
+                  </Grid>
 
-          {!isEditing && (
-            <PasswordInput
-              label="Password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={errors.password}
-              required
-            />
-          )}
+                  {!isEditing && (
+                    <PasswordInput
+                      label="Password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      error={errors.password}
+                      required
+                    />
+                  )}
 
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <DateInput
-                label="Date of Birth"
-                placeholder="Date of Birth"
-                value={member.dob ? new Date(member.dob) : null}
-                onChange={(date) => handleChange('dob', date ? date.toISOString().split('T')[0] : null)}
-                error={errors.dob}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput
-                label="Phone Number"
-                placeholder="Phone Number"
-                value={member.phone_number || ''}
-                onChange={(e) => handleChange('phone_number', e.target.value)}
-              />
-            </Grid.Col>
-          </Grid>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <DateInput
+                        label="Date of Birth"
+                        placeholder="Date of Birth"
+                        value={member.dob ? new Date(member.dob) : null}
+                        onChange={(date) => handleChange('dob', date ? date.toISOString().split('T')[0] : null)}
+                        error={errors.dob}
+                        required
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Phone Number"
+                        placeholder="Phone Number"
+                        value={member.phone_number || ''}
+                        onChange={(e) => handleChange('phone_number', e.target.value)}
+                      />
+                    </Grid.Col>
+                  </Grid>
 
-          <FileInput
-            label="Profile Photo"
-            placeholder="Upload a profile photo"
-            accept="image/*"
-            onChange={setAvatar}
-          />
+                  <FileInput
+                    label="Profile Photo"
+                    placeholder="Upload a profile photo"
+                    accept="image/*"
+                    onChange={setAvatar}
+                  />
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
 
-          <Divider label="Academic Information" labelPosition="center" />
+            <Accordion.Item value="academic">
+              <Accordion.Control>Academic Information</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Major"
+                        placeholder="Major"
+                        value={member.major || ''}
+                        onChange={(e) => handleChange('major', e.target.value)}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <NumberInput
+                        label="GPA"
+                        placeholder="GPA"
+                        min={0}
+                        max={4.0}
+                        step={0.1}
+                        value={member.gpa || 0}
+                        onChange={(value) => handleChange('gpa', value)}
+                        error={errors.gpa}
+                        required
+                        decimalScale={1}
+                      />
+                    </Grid.Col>
+                  </Grid>
 
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput
-                label="Major"
-                placeholder="Major"
-                value={member.major || ''}
-                onChange={(e) => handleChange('major', e.target.value)}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <NumberInput
-                label="GPA"
-                placeholder="GPA"
-                min={0}
-                max={4.0}
-                step={0.1}
-                value={member.gpa || 0}
-                onChange={(value) => handleChange('gpa', value)}
-                error={errors.gpa}
-                required
-                decimalScale={1}
-              />
-            </Grid.Col>
-          </Grid>
+                  <TextInput
+                    label="Canton Card ID"
+                    placeholder="Canton Card ID"
+                    value={member.canton_card_id || ''}
+                    onChange={(e) => handleChange('canton_card_id', e.target.value)}
+                    error={errors.canton_card_id}
+                    required
+                  />
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
 
-          <TextInput
-            label="Canton Card ID"
-            placeholder="Canton Card ID"
-            value={member.canton_card_id || ''}
-            onChange={(e) => handleChange('canton_card_id', e.target.value)}
-            error={errors.canton_card_id}
-            required
-          />
+            <Accordion.Item value="ems">
+              <Accordion.Control>EMS Information</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Select
+                        label="Position"
+                        placeholder="Position"
+                        data={[
+                          { value: 'Advisor', label: 'Advisor' },
+                          { value: 'President', label: 'President' },
+                          { value: 'Vice President', label: 'Vice President' },
+                          { value: 'Secretary', label: 'Secretary' },
+                          { value: 'Treasurer', label: 'Treasurer' },
+                          { value: 'Senator', label: 'Senator' },
+                          { value: 'Member', label: 'Member' },
+                          { value: 'Honor Roll', label: 'Honor Roll' },
+                          { value: 'Auxillary', label: 'Auxillary' }
+                        ]}
+                        value={member.position || 'Member'}
+                        onChange={(value) => handleChange('position', value)}
+                        required
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Select
+                        label="Medical Level"
+                        placeholder="Medical Level"
+                        data={[
+                          { value: 'EMT', label: 'EMT' },
+                          { value: 'First Responder', label: 'First Responder' }
+                        ]}
+                        value={member.medical_level || ''}
+                        onChange={(value) => handleChange('medical_level', value)}
+                        clearable
+                      />
+                    </Grid.Col>
+                  </Grid>
 
-          <Divider label="EMS Information" labelPosition="center" />
+                  <Select
+                    label="Membership Standing"
+                    placeholder="Membership Standing"
+                    data={[
+                      { value: 'Good', label: 'Good Standing' },
+                      { value: 'Bad', label: 'Bad Standing' }
+                    ]}
+                    value={member.membership_standing || 'Good'}
+                    onChange={(value) => handleChange('membership_standing', value)}
+                    required
+                  />
 
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <Select
-                label="Position"
-                placeholder="Position"
-                data={[
-                  { value: 'Advisor', label: 'Advisor' },
-                  { value: 'President', label: 'President' },
-                  { value: 'Vice President', label: 'Vice President' },
-                  { value: 'Secretary', label: 'Secretary' },
-                  { value: 'Treasurer', label: 'Treasurer' },
-                  { value: 'Senator', label: 'Senator' },
-                  { value: 'Member', label: 'Member' },
-                  { value: 'Honor Roll', label: 'Honor Roll' },
-                  { value: 'Auxillary', label: 'Auxillary' }
-                ]}
-                value={member.position || 'Member'}
-                onChange={(value) => handleChange('position', value)}
-                required
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <Select
-                label="Medical Level"
-                placeholder="Medical Level"
-                data={[
-                  { value: 'EMT', label: 'EMT' },
-                  { value: 'First Responder', label: 'First Responder' }
-                ]}
-                value={member.medical_level || ''}
-                onChange={(value) => handleChange('medical_level', value)}
-                clearable
-              />
-            </Grid.Col>
-          </Grid>
+                  <Select
+                    label="Shirt Size"
+                    placeholder="Shirt Size"
+                    data={[
+                      { value: 'xs', label: 'XS' },
+                      { value: 's', label: 'S' },
+                      { value: 'm', label: 'M' },
+                      { value: 'l', label: 'L' },
+                      { value: 'xl', label: 'XL' },
+                      { value: 'xxl', label: '2XL' },
+                      { value: 'xxxl', label: '3XL' }
+                    ]}
+                    value={member.shirt_size || ''}
+                    onChange={(value) => handleChange('shirt_size', value)}
+                    clearable
+                  />
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
 
-          <Select
-            label="Membership Standing"
-            placeholder="Membership Standing"
-            data={[
-              { value: 'Good', label: 'Good Standing' },
-              { value: 'Bad', label: 'Bad Standing' }
-            ]}
-            value={member.membership_standing || 'Good'}
-            onChange={(value) => handleChange('membership_standing', value)}
-            required
-          />
+            <Accordion.Item value="housing">
+              <Accordion.Control>Housing Information</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  <Select
+                    label="Housing Type"
+                    placeholder="Housing Type"
+                    data={[
+                      { value: 'On Campus', label: 'On Campus' },
+                      { value: 'Off Campus', label: 'Off Campus' }
+                    ]}
+                    value={member.housing_type || 'On Campus'}
+                    onChange={(value) => handleChange('housing_type', value)}
+                    required
+                  />
 
-          <Select
-            label="Shirt Size"
-            placeholder="Shirt Size"
-            data={[
-              { value: 'xs', label: 'XS' },
-              { value: 's', label: 'S' },
-              { value: 'm', label: 'M' },
-              { value: 'l', label: 'L' },
-              { value: 'xl', label: 'XL' },
-              { value: 'xxl', label: '2XL' },
-              { value: 'xxxl', label: '3XL' }
-            ]}
-            value={member.shirt_size || ''}
-            onChange={(value) => handleChange('shirt_size', value)}
-            clearable
-          />
+                  {member.housing_type === 'On Campus' && (
+                    <Grid>
+                      <Grid.Col span={{ base: 12, md: 6 }}>
+                        <TextInput
+                          label="Building"
+                          placeholder="Building"
+                          value={member.building || ''}
+                          onChange={(e) => handleChange('building', e.target.value)}
+                        />
+                      </Grid.Col>
+                      <Grid.Col span={{ base: 12, md: 6 }}>
+                        <NumberInput
+                          label="Room Number"
+                          placeholder="Room Number"
+                          value={member.room_number || 0}
+                          onChange={(value) => handleChange('room_number', value)}
+                          required
+                        />
+                      </Grid.Col>
+                    </Grid>
+                  )}
 
-          <Divider label="Housing Information" labelPosition="center" />
+                  {member.housing_type === 'Off Campus' && (
+                    <TextInput
+                      label="Local Address"
+                      placeholder="Local Address"
+                      value={member.local_address || ''}
+                      onChange={(e) => handleChange('local_address', e.target.value)}
+                    />
+                  )}
 
-          <Select
-            label="Housing Type"
-            placeholder="Housing Type"
-            data={[
-              { value: 'On Campus', label: 'On Campus' },
-              { value: 'Off Campus', label: 'Off Campus' }
-            ]}
-            value={member.housing_type || 'On Campus'}
-            onChange={(value) => handleChange('housing_type', value)}
-            required
-          />
-
-          {member.housing_type === 'On Campus' && (
-            <Grid>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <TextInput
-                  label="Building"
-                  placeholder="Building"
-                  value={member.building || ''}
-                  onChange={(e) => handleChange('building', e.target.value)}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <NumberInput
-                  label="Room Number"
-                  placeholder="Room Number"
-                  value={member.room_number || 0}
-                  onChange={(value) => handleChange('room_number', value)}
-                  required
-                />
-              </Grid.Col>
-            </Grid>
-          )}
-
-          {member.housing_type === 'Off Campus' && (
-            <TextInput
-              label="Local Address"
-              placeholder="Local Address"
-              value={member.local_address || ''}
-              onChange={(e) => handleChange('local_address', e.target.value)}
-            />
-          )}
-
-          <TextInput
-            label="Home Address"
-            placeholder="Home Address"
-            value={member.home_address || ''}
-            onChange={(e) => handleChange('home_address', e.target.value)}
-          />
+                  <TextInput
+                    label="Home Address"
+                    placeholder="Home Address"
+                    value={member.home_address || ''}
+                    onChange={(e) => handleChange('home_address', e.target.value)}
+                  />
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
 
           <Group justify="flex-end" mt="xl">
             <Button variant="outline" onClick={() => router.back()}>
