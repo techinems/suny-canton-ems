@@ -5,7 +5,7 @@ export interface Certification {
   id: string;
   cert_name: string;
   member_id: string;
-  cert_scan: File;
+  cert_scan: File | string;
   cert_expiration?: string;
   cert_issue_date?: string; 
   cert_number?: string;
@@ -15,16 +15,13 @@ export interface Certification {
 }
 
 // Get file URL for certification scan
-export function getFileUrl(recordId: string, filename: string): string | undefined {
-  if (!filename) return undefined;
-  
-  // If it's already a full URL, return it
-  if (filename.startsWith('http')) {
-    return filename;
+export function getFileUrl(cert: Certification): string | undefined {
+  // If it's a file send back a data url
+  if (typeof cert.cert_scan !== 'string') {
+    return URL.createObjectURL(cert.cert_scan);
   }
-  
   // Use PocketBase's built-in file URL method
-  return '';
+  return pb.files.getURL(cert, cert.cert_scan);
 }
 
 // Get all certifications for the current user

@@ -81,7 +81,7 @@ export function CertificationCard({ cert }: {cert: Certification}) {
         <Badge color={color}>{status}</Badge>
         
         {cert.cert_scan && cert.id && (
-          <Anchor href={getFileUrl(cert.id, cert.cert_scan.toString())} target="_blank" download>
+          <Anchor href={getFileUrl(cert)} target="_blank" download>
             <Button 
               variant="light" 
               size="xs" 
