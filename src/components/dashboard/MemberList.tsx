@@ -1,22 +1,16 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { 
-  Table, 
   Avatar, 
   Group, 
   Text, 
-  Badge, 
-  ActionIcon, 
-  Menu, 
-  Button,
-  Loader,
-  Center,
-  Modal,
+  Badge,
 } from '@mantine/core';
-import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
-import { useDisclosure } from '@mantine/hooks';
-import Link from 'next/link';
-import { Member, getAllMembers, getMemberAvatarUrl, getFullName } from '@/lib/client/memberService';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { DataTable, Column, Action } from '@/components/DataTable';
+import { Member, getAllMembers, getMemberAvatarUrl, getFullName, deleteMember } from '@/lib/client/memberService';
+import { notifications } from '@mantine/notifications';
+import { useRouter } from 'next/navigation';
 
 // Helper function to get badge color based on member position
 const getPositionColor = (position: string): string => {
@@ -43,138 +37,142 @@ const getStandingColor = (standing: string): string => {
 export function MemberList() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [opened, { open, close }] = useDisclosure(false);
-  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchMembers = async () => {
       setLoading(true);
-      const fetchedMembers = await getAllMembers();
-      setMembers(fetchedMembers);
-      setLoading(false);
+      try {
+        const fetchedMembers = await getAllMembers();
+        setMembers(fetchedMembers);
+      } catch {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to load members',
+          color: 'red',
+          autoClose: 5000,
+        });
+      } finally {
+        setLoading(false);
+      }
     };
-
     fetchMembers();
   }, []);
 
-  const handleDeleteClick = (member: Member) => {
-    setMemberToDelete(member);
-    open();
+  const handleDeleteMember = async (member: Member) => {
+    try {
+      const success = await deleteMember(member.id);
+      if (success) {
+        notifications.show({
+          title: 'Success',
+          message: `${getFullName(member)} was deleted successfully`,
+          color: 'green',
+          autoClose: 5000,
+        });
+        setMembers(members.filter(m => m.id !== member.id));
+      } else {
+        throw new Error('Failed to delete member');
+      }
+    } catch {
+      notifications.show({
+        title: 'Error',
+        message: `Failed to delete ${getFullName(member)}`,
+        color: 'red',
+        autoClose: 5000,
+      });
+    }
   };
 
-  const confirmDelete = async () => {
-    // Would implement actual delete functionality here
-    // For now, we'll just close the modal
-    close();
-    setMemberToDelete(null);
-  };
+  const columns: Column<Member>[] = [
+    {
+      key: 'member',
+      title: 'Member',
+      render: (member) => (
+        <Group gap="sm">
+          <Avatar
+            src={getMemberAvatarUrl(member)}
+            alt={getFullName(member)}
+            radius="xl"
+            size="md"
+          />
+          <div>
+            <Text size="sm" fw={500}>
+              {getFullName(member)}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {member.major || 'No major specified'}
+            </Text>
+          </div>
+        </Group>
+      )
+    },
+    {
+      key: 'position',
+      title: 'Position',
+      render: (member) => (
+        <Badge color={getPositionColor(member.position)}>
+          {member.position}
+        </Badge>
+      )
+    },
+    {
+      key: 'medical_level',
+      title: 'Medical Level',
+      render: (member) => (
+        member.medical_level ? (
+          <Text size="sm">{member.medical_level}</Text>
+        ) : (
+          <Text size="sm" c="dimmed">Not specified</Text>
+        )
+      )
+    },
+    {
+      key: 'membership_standing',
+      title: 'Membership',
+      render: (member) => (
+        <Badge color={getStandingColor(member.membership_standing)}>
+          {member.membership_standing}
+        </Badge>
+      )
+    },
+    {
+      key: 'contact',
+      title: 'Contact',
+      render: (member) => (
+        <>
+          <Text size="sm">{member.email}</Text>
+          <Text size="xs">{member.phone_number || 'No phone number'}</Text>
+        </>
+      )
+    }
+  ];
 
-  if (loading) {
-    return (
-      <Center h={200}>
-        <Loader />
-      </Center>
-    );
-  }
+  const actions: Action<Member>[] = [
+    {
+      label: 'Edit Member',
+      icon: <IconEdit size="1rem" />,
+      href: (member) => `/dashboard/members/${member.id}`
+    },
+    {
+      label: 'Delete Member',
+      icon: <IconTrash size="1rem" />,
+      color: 'red'
+    }
+  ];
 
   return (
-    <>
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Member</Table.Th>
-            <Table.Th>Position</Table.Th>
-            <Table.Th>Medical Level</Table.Th>
-            <Table.Th>Membership</Table.Th>
-            <Table.Th>Contact</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {members.map((member) => (
-            <Table.Tr key={member.id}>
-              <Table.Td>
-                <Group gap="sm">
-                  <Avatar
-                    src={getMemberAvatarUrl(member)}
-                    alt={getFullName(member)}
-                    radius="xl"
-                    size="md"
-                  />
-                  <div>
-                    <Text size="sm" fw={500}>
-                      {getFullName(member)}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {member.major || 'No major specified'}
-                    </Text>
-                  </div>
-                </Group>
-              </Table.Td>
-              <Table.Td>
-                <Badge color={getPositionColor(member.position)}>
-                  {member.position}
-                </Badge>
-              </Table.Td>
-              <Table.Td>
-                {member.medical_level ? (
-                  <Text size="sm">{member.medical_level}</Text>
-                ) : (
-                  <Text size="sm" c="dimmed">Not specified</Text>
-                )}
-              </Table.Td>
-              <Table.Td>
-                <Badge color={getStandingColor(member.membership_standing)}>
-                  {member.membership_standing}
-                </Badge>
-              </Table.Td>
-              <Table.Td>
-                <Text size="sm">{member.email}</Text>
-                <Text size="xs">{member.phone_number || 'No phone number'}</Text>
-              </Table.Td>
-              <Table.Td>
-                <Menu position="bottom-end" shadow="md">
-                  <Menu.Target>
-                    <ActionIcon variant="subtle">
-                      <IconDotsVertical size="1rem" />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item 
-                      leftSection={<IconEdit size="1rem" />}
-                      component={Link}
-                      href={`/dashboard/members/${member.id}`}
-                    >
-                      Edit Member
-                    </Menu.Item>
-                    <Menu.Item 
-                      leftSection={<IconTrash size="1rem" />}
-                      color="red"
-                      onClick={() => handleDeleteClick(member)}
-                    >
-                      Delete Member
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-
-      <Modal opened={opened} onClose={close} title="Confirm Deletion" centered>
-        {memberToDelete && (
-          <>
-            <Text>
-              Are you sure you want to delete {getFullName(memberToDelete)}? This action cannot be undone.
-            </Text>
-            <Group justify="flex-end" mt="md">
-              <Button variant="outline" onClick={close}>Cancel</Button>
-              <Button color="red" onClick={confirmDelete}>Delete</Button>
-            </Group>
-          </>
-        )}
-      </Modal>
-    </>
+    <DataTable<Member>
+      data={members}
+      columns={columns}
+      actions={actions}
+      loading={loading}
+      onRowClick={(member) => router.push(`/dashboard/members/${member.id}`)}
+      emptyMessage="No members found"
+      confirmDelete={{
+        title: 'Confirm Deletion',
+        message: (member) => `Are you sure you want to delete ${getFullName(member)}? This action cannot be undone.`,
+        onConfirm: handleDeleteMember
+      }}
+    />
   );
 }
