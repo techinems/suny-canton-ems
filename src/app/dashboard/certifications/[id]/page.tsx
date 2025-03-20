@@ -5,6 +5,7 @@ import { Container, Title, Loader, Center, Alert } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { CertificationForm } from '@/components/dashboard/CertificationForm';
 import { getCertification } from '@/lib/client/certificationService';
+import { useParams } from 'next/navigation';
 
 interface FormattedCertification {
   id: string;
@@ -15,13 +16,11 @@ interface FormattedCertification {
   issuing_authority?: string;
 }
 
-interface EditCertificationPageProps {
-  params: {
-    id: string;
-  };
-}
 
-export default function EditCertificationPage({ params }: EditCertificationPageProps) {
+
+export default function EditCertificationPage() {
+  const params = useParams();
+  const id = params.id as string;
   const [certification, setCertification] = useState<FormattedCertification | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +29,8 @@ export default function EditCertificationPage({ params }: EditCertificationPageP
     const fetchCertification = async () => {
       try {
         setLoading(true);
-        const data = await getCertification(params.id);
-        
+        const data = await getCertification(id);
+
         // Convert string dates to Date objects
         const formattedCert: FormattedCertification = {
           id: data.id,
@@ -41,7 +40,7 @@ export default function EditCertificationPage({ params }: EditCertificationPageP
           cert_number: data.cert_number,
           issuing_authority: data.issuing_authority,
         };
-        
+
         setCertification(formattedCert);
       } catch (err) {
         console.error('Error fetching certification:', err);
@@ -52,7 +51,7 @@ export default function EditCertificationPage({ params }: EditCertificationPageP
     };
 
     fetchCertification();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
     return (
