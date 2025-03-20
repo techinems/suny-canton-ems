@@ -1,49 +1,62 @@
 'use client';
 
-import { Box, Button, Group, Paper, Text, Title } from '@mantine/core';
+import { useEffect, useState } from 'react';
+import { Alert, Loader, Center } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useAuth } from './AuthContext';
-import { redirect } from 'next/navigation';
+import { MemberDetail } from '../dashboard/MemberDetail';
+import { Member, getMemberById } from '@/lib/client/memberService';
 
 export function UserProfile() {
-  const { user, logout, isLoading } = useAuth();
+  const { user } = useAuth();
+  const [member, setMember] = useState<Member | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogout = async () => {
-    await logout();
-    redirect('/login');
-  };
+  useEffect(() => {
+    async function fetchMemberData() {
+      if (user?.id) {
+        try {
+          setLoading(true);
+          const memberData = await getMemberById(user.id);
+          setMember(memberData);
+        } catch (err) {
+          setError('Failed to load profile data');
+          console.error('Error fetching member data:', err);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    }
 
-  if (!user) {
-    return null;
+    fetchMemberData();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <Center h={200}>
+        <Loader size="lg" />
+      </Center>
+    );
   }
 
-  return (
-    <Paper shadow="xs" p="md" withBorder>
-      <Title order={4} mb="md">User Profile</Title>
-      
-      <Box>
-        <Text fw={500}>Email:</Text>
-        <Text>{user.email}</Text>
-      </Box>
+  if (error) {
+    return (
+      <Alert icon={<IconAlertCircle size="1rem" />} title="Error" color="red">
+        {error}
+      </Alert>
+    );
+  }
 
-      {user.first_name && (
-        <Box mt="sm">
-          <Text fw={500}>Name:</Text>
-          <Text>{user.first_name} {user.last_name || ''}</Text>
-        </Box>
-      )}
+  if (!member) {
+    return (
+      <Alert icon={<IconAlertCircle size="1rem" />} title="Not Found" color="yellow">
+        Member profile not found. Please contact your administrator.
+      </Alert>
+    );
+  }
 
-      {user.role && (
-        <Box mt="sm">
-          <Text fw={500}>Role:</Text>
-          <Text>{user.role}</Text>
-        </Box>
-      )}
-
-      <Group justify="flex-end" mt="xl">
-        <Button onClick={handleLogout} loading={isLoading} color="red">
-          Logout
-        </Button>
-      </Group>
-    </Paper>
-  );
+  return <MemberDetail member={member} />;
 }
