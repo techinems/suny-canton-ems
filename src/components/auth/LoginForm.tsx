@@ -9,7 +9,8 @@ import {
   Stack,
   Checkbox,
   Anchor,
-  Center
+  Center,
+  Text
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconMail, IconLock } from '@tabler/icons-react';
@@ -102,9 +103,10 @@ export function LoginForm() {
             Sign in
           </Button>
           <Center>
-            <Anchor size="sm" href="/register" component="a">
-              Don&apos;t have an account? Register
-            </Anchor>
+            <Group gap="xs">
+              <IconMail size={16} />
+              <Text size="sm">Don&apos;t have an account? Contact ems@canton.edu to join!</Text>
+            </Group>
           </Center>
         </Stack>
       </form>

@@ -7,7 +7,6 @@ import {
   Group, 
   Select, 
   Button, 
-  Title,
   FileInput,
   PasswordInput,
   Grid,
@@ -33,7 +32,7 @@ const defaultMember: Partial<Member> = {
   room_number: 0,
   gpa: 2.0,
   canton_card_id: '',
-  dob: new Date().toISOString().split('T')[0],
+  dob: new Date().toISOString().split('T')[0]
 };
 
 export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
@@ -42,6 +41,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [avatar, setAvatar] = useState<File | null>(null);
   const [password, setPassword] = useState<string>('');
+  const [passwordConfirm, setPasswordConfirm] = useState<string>('');
   const router = useRouter();
 
   // Fetch existing member data if editing
@@ -65,6 +65,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
     // Required fields
     if (!member.email) newErrors.email = 'Email is required';
     if (!isEditing && !password) newErrors.password = 'Password is required';
+    if (!isEditing && password !== passwordConfirm) newErrors.passwordConfirm = 'Passwords do not match';
     if (!member.first_name) newErrors.first_name = 'First name is required';
     if (!member.last_name) newErrors.last_name = 'Last name is required';
     if (!member.dob) newErrors.dob = 'Date of birth is required';
@@ -98,7 +99,11 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
       let result;
 
       // Create a clean data object without id, created, or updated fields
-      const memberData: Partial<Member> = { ...member };
+      const memberData: Partial<Member> = { 
+        ...member,
+        emailVisibility: true, // Always set email visibility to false
+        membership_standing: member.membership_standing || 'Good'
+      };
       
       // Add avatar to the data if there's a file selected
       if (avatar) {
@@ -113,7 +118,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
         const newMemberData = {
           ...memberData,
           password,
-          passwordConfirm: password,
+          passwordConfirm
         };
         
         result = await createMember(newMemberData);
@@ -131,7 +136,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
     }
   };
 
-  const handleChange = (name: string, value: string | number | null) => {
+  const handleChange = (name: string, value: string | number | boolean | null) => {
     setMember(prev => ({ ...prev, [name]: value }));
     // Clear error for this field
     if (errors[name]) {
@@ -147,7 +152,6 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
     <Paper withBorder p="xl" radius="md">
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
-          <Title order={3}>{isEditing ? 'Edit Member' : 'Add New Member'}</Title>
           
           {isEditing && member.avatar && (
             <Group justify="center" my="md">
@@ -218,14 +222,28 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                   </Grid>
 
                   {!isEditing && (
-                    <PasswordInput
-                      label="Password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      error={errors.password}
-                      required
-                    />
+                    <Grid>
+                      <Grid.Col span={{ base: 12, md: 6 }}>
+                        <PasswordInput
+                          label="Password"
+                          placeholder="Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          error={errors.password}
+                          required
+                        />
+                      </Grid.Col>
+                      <Grid.Col span={{ base: 12, md: 6 }}>
+                        <PasswordInput
+                          label="Confirm Password"
+                          placeholder="Confirm Password"
+                          value={passwordConfirm}
+                          onChange={(e) => setPasswordConfirm(e.target.value)}
+                          error={errors.passwordConfirm}
+                          required
+                        />
+                      </Grid.Col>
+                    </Grid>
                   )}
 
                   <Grid>
@@ -388,7 +406,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                     required
                   />
 
-                  {member.housing_type === 'On Campus' && (
+                  {member.housing_type !== 'Off Campus' && (
                     <Grid>
                       <Grid.Col span={{ base: 12, md: 6 }}>
                         <TextInput

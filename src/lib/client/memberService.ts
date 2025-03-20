@@ -6,7 +6,6 @@ export interface Member {
   id: string;
   email: string;
   emailVisibility: boolean;
-  verified: boolean;
   first_name: string;
   last_name: string;
   preferred_name?: string;
@@ -46,8 +45,8 @@ export const getAllMembers = async (): Promise<Member[]> => {
 // Function to get a member by ID
 export const getMemberById = async (id: string): Promise<Member | null> => {
   try {
-    const record = await pb.collection('users').getOne(id);
-    return record as unknown as Member;
+    const record = await pb.collection<Member>('users').getOne(id);
+    return record;
   } catch (error) {
     console.error(`Error fetching member with ID ${id}:`, error);
     return null;
@@ -57,8 +56,8 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
 // Function to create a new member
 export const createMember = async (memberData: Partial<Member>): Promise<Member | null> => {
   try {
-    const record = await pb.collection('users').create(memberData);
-    return record as unknown as Member;
+    const record = await pb.collection<Member>('users').create(memberData);
+    return record;
   } catch (error) {
     console.error('Error creating member:', error);
     return null;
