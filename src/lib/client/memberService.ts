@@ -10,7 +10,7 @@ export interface Member {
   first_name: string;
   last_name: string;
   preferred_name?: string;
-  avatar?: string;
+  avatar?: string | File;
   shirt_size?: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'xxxl';
   dob: string;
   canton_email?: string;
@@ -97,6 +97,11 @@ export const getFullName = (member: Member): string => {
 
 // Function to get avatar URL
 export const getMemberAvatarUrl = (member: Member): string => {
+  // If it's a file send back a data url
+  if (member.avatar && typeof member.avatar !== 'string') {
+    return URL.createObjectURL(member.avatar);
+  }
+  // Use PocketBase's built-in file URL method if it's a string reference
   if (member.avatar) {
     return pb.files.getURL(member, member.avatar);
   }

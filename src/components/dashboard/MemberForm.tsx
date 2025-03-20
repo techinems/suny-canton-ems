@@ -19,7 +19,6 @@ import { DateInput } from '@mantine/dates';
 import { useRouter } from 'next/navigation';
 import { Member, getMemberById, createMember, updateMember, getMemberAvatarUrl } from '@/lib/client/memberService';
 import { isEmail } from '@/lib/utils';
-import { pb } from '@/lib/client/pocketbase';
 
 interface MemberFormProps {
   memberId?: string;
@@ -98,36 +97,32 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
     try {
       let result;
 
+      // Create a clean data object without id, created, or updated fields
+      const memberData: Partial<Member> = { ...member };
+      
+      // Add avatar to the data if there's a file selected
+      if (avatar) {
+        memberData.avatar = avatar;
+      }
+
       // Create or update based on isEditing flag
       if (isEditing && memberId) {
-        // Handle file upload separately if needed
-        if (avatar) {
-          const formData = new FormData();
-          formData.append('avatar', avatar);
-          await pb.collection('users').update(memberId, formData);
-        }
-        result = await updateMember(memberId, member);
+        result = await updateMember(memberId, memberData);
       } else {
         // Creating a new user requires a password
         const newMemberData = {
-          ...member,
+          ...memberData,
           password,
           passwordConfirm: password,
         };
         
         result = await createMember(newMemberData);
-        
-        // Handle avatar upload for new member
-        if (result && avatar) {
-          const formData = new FormData();
-          formData.append('avatar', avatar);
-          await pb.collection('users').update(result.id, formData);
-        }
       }
 
       if (result) {
         // Redirect to members list on success
         router.push('/dashboard/members');
+        router.refresh();
       }
     } catch (error) {
       console.error('Error saving member:', error);
