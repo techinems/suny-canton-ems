@@ -3,11 +3,12 @@ import { DateTimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { useRouter } from 'next/navigation';
 import { getCallLog, updateCallLog, createCallLog } from '@/lib/client/callService';
-import { getInventoryItems } from '@/lib/client/inventoryService';
+import { getInventoryItems, getInventoryItem, InventoryItem } from '@/lib/client/inventoryService';
 import { getAllMembers, Member } from '@/lib/client/memberService';
 import { notifications } from '@mantine/notifications';
 import { IconDeviceFloppy } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { InventoryItemsSelector, ItemWithQuantity } from './InventoryItemsSelector';
 
 interface CallFormProps {
   callId?: string;
@@ -21,6 +22,12 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [inventoryItems, setInventoryItems] = useState<{value: string, label: string}[]>([]);
   const [members, setMembers] = useState<{value: string, label: string}[]>([]);
+  const [selectedItemsWithQuantities, setSelectedItemsWithQuantities] = useState<ItemWithQuantity[]>([]);
+  const [inventoryItemsMap, setInventoryItemsMap] = useState<Record<string, InventoryItem>>({});
+  // Track if we've already updated the form to prevent loops
+  const hasUpdatedForm = useRef(false);
+  // Current date to use as maxDate for DateTimePicker components
+  const today = new Date();
 
   const form = useForm({
     initialValues: {
@@ -37,13 +44,32 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
       crew: [] as string[],
       comments: '',
       status: undefined as 'Cancelled enroute' | 'Complete' | undefined,
+      // We'll keep the original items_used for compatibility, but use our ItemWithQuantity UI
+      itemsWithQuantities: [] as ItemWithQuantity[],
     },
     validate: {
       location: (value) => value.trim().length === 0 ? 'Location is required' : null,
-      call_received: (value) => value ? null : 'Call received time is required',
-      call_enroute: (value) => value ? null : 'Call enroute time is required',
-      on_scene: (value) => value ? null : 'On scene time is required',
-      back_in_service: (value) => value ? null : 'Back in service time is required',
+      call_received: (value) => {
+        if (!value) return 'Call received time is required';
+      },
+      call_enroute: (value, values) => {
+        if (!value) return 'Call enroute time is required';
+        if (values.call_received && value < values.call_received) 
+          return 'Call enroute time must be after call received time';
+        return null;
+      },
+      on_scene: (value, values) => {
+        if (!value) return 'On scene time is required';
+        if (values.call_enroute && value < values.call_enroute) 
+          return 'On scene time must be after call enroute time';
+        return null;
+      },
+      back_in_service: (value, values) => {
+        if (!value) return 'Back in service time is required';
+        if (values.on_scene && value < values.on_scene) 
+          return 'Back in service time must be after on scene time';
+        return null;
+      },
     }
   });
 
@@ -66,6 +92,36 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
           crew: loadedCall.crew || [],
         });
         
+        // If there are items used, load their details for the quantity interface
+        if (loadedCall.items_used && loadedCall.items_used.length > 0) {
+          const itemsWithQuantities: ItemWithQuantity[] = [];
+          const itemCounts: Record<string, number> = {};
+          
+          // Count occurrences of each item ID to determine quantities
+          for (const itemId of loadedCall.items_used) {
+            if (itemId) {
+              itemCounts[itemId] = (itemCounts[itemId] || 0) + 1;
+            }
+          }
+          
+          // For each unique item ID, fetch the item details and create an entry with the counted quantity
+          for (const itemId of Object.keys(itemCounts)) {
+            try {
+              const item = await getInventoryItem(itemId);
+              itemsWithQuantities.push({
+                itemId,
+                quantity: itemCounts[itemId], // Use the counted quantity
+                itemName: item.item_name,
+                maxQuantity: item.quantity + itemCounts[itemId] // Add the used quantity back to max
+              });
+            } catch (error) {
+              console.error(`Error loading item details for ${itemId}:`, error);
+            }
+          }
+          
+          setSelectedItemsWithQuantities(itemsWithQuantities);
+        }
+        
         setError(null);
       } catch (error) {
         console.error('Error loading call log:', error);
@@ -82,6 +138,11 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
           value: item.id,
           label: item.item_name
         })));
+        const itemsMap = items.reduce((acc, item) => {
+          acc[item.id] = item;
+          return acc;
+        }, {} as Record<string, InventoryItem>);
+        setInventoryItemsMap(itemsMap);
       } catch (error) {
         console.error('Error loading inventory items:', error);
       }
@@ -105,8 +166,39 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callId, isEditing]);
 
+  // Update the form data with the items with quantities information only when needed
+  useEffect(() => {
+    // Skip updates if there's no change or we're in initial loading
+    if (loading || hasUpdatedForm.current) return;
+    
+    // Set flag to prevent multiple updates in the same cycle
+    hasUpdatedForm.current = true;
+    
+    // Schedule the form update in the next tick to avoid update loops
+    const timeoutId = setTimeout(() => {
+      form.setFieldValue('itemsWithQuantities', selectedItemsWithQuantities);
+      hasUpdatedForm.current = false;
+    }, 0);
+    
+    return () => clearTimeout(timeoutId);
+  }, [selectedItemsWithQuantities, form, loading]);
+
   const handleSubmit = async (values: typeof form.values) => {
     try {
+      // Get our item quantities data
+      const itemsWithQuantities = values.itemsWithQuantities || [];
+      
+      // For each item with quantity, we need to create multiple entries in the items_used array
+      // This allows us to store quantity information using the existing schema
+      // For example, if we used 3 of item "123", we'll have ["123", "123", "123"] in the items_used array
+      const expandedItemsUsed: string[] = [];
+      itemsWithQuantities.forEach(item => {
+        // Add the item ID to the array as many times as the quantity indicates
+        for (let i = 0; i < item.quantity; i++) {
+          expandedItemsUsed.push(item.itemId);
+        }
+      });
+
       // Convert dates to ISO strings for PocketBase
       const callData = {
         ...values,
@@ -114,6 +206,8 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
         call_enroute: values.call_enroute.toISOString(),
         on_scene: values.on_scene.toISOString(),
         back_in_service: values.back_in_service.toISOString(),
+        // Use the expanded array that contains item IDs repeated based on quantity
+        items_used: expandedItemsUsed,
       };
 
       if (isEditing && callId) {
@@ -142,6 +236,32 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
     }
   };
 
+  const handleItemsChange = useCallback((items: string[]) => {
+    form.setFieldValue('items_used', items);
+  }, [form]);
+
+  const handleItemsWithQuantitiesChange = useCallback((items: ItemWithQuantity[]) => {
+    // Compare current items with new items to avoid unnecessary updates
+    const currentIds = new Set(selectedItemsWithQuantities.map(item => `${item.itemId}-${item.quantity}`));
+    const newIds = new Set(items.map(item => `${item.itemId}-${item.quantity}`));
+    
+    // Check if the sets are different
+    let needsUpdate = currentIds.size !== newIds.size;
+    if (!needsUpdate) {
+      for (const id of currentIds) {
+        if (!newIds.has(id)) {
+          needsUpdate = true;
+          break;
+        }
+      }
+    }
+    
+    // Only update state if there's an actual change
+    if (needsUpdate) {
+      setSelectedItemsWithQuantities(items);
+    }
+  }, [selectedItemsWithQuantities]);
+
   return (
     <Paper withBorder p="md" radius="md" shadow="xs" pos="relative">
       <LoadingOverlay visible={loading} />
@@ -168,6 +288,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 placeholder="Select date and time"
                 required
                 clearable={false}
+                maxDate={today}
                 {...form.getInputProps('call_received')}
               />
               
@@ -176,6 +297,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 placeholder="Select date and time"
                 required
                 clearable={false}
+                maxDate={today}
                 {...form.getInputProps('call_enroute')}
               />
             </Group>
@@ -186,6 +308,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 placeholder="Select date and time"
                 required
                 clearable={false}
+                maxDate={today}
                 {...form.getInputProps('on_scene')}
               />
               
@@ -194,6 +317,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 placeholder="Select date and time"
                 required
                 clearable={false}
+                maxDate={today}
                 {...form.getInputProps('back_in_service')}
               />
             </Group>
@@ -246,13 +370,12 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
               {...form.getInputProps('dispatch_info')}
             />
             
-            <MultiSelect
-              label="Items Used"
-              placeholder="Select items used during the call"
-              data={inventoryItems}
-              searchable
-              clearable
-              {...form.getInputProps('items_used')}
+            <InventoryItemsSelector
+              inventoryItems={inventoryItems}
+              inventoryItemsMap={inventoryItemsMap}
+              selectedItemIds={form.values.items_used}
+              onItemsChange={handleItemsChange}
+              onItemsWithQuantitiesChange={handleItemsWithQuantitiesChange}
             />
             
             <MultiSelect
