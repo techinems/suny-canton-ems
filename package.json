@@ -9,17 +9,20 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@mantine/core": "^7.17.1",
-    "@mantine/dates": "^7.17.2",
-    "@mantine/form": "^7.17.1",
-    "@mantine/hooks": "^7.17.1",
-    "@mantine/modals": "^7.17.2",
-    "@mantine/notifications": "^7.17.2",
-    "@tabler/icons-react": "^3.31.0",
-    "next": "15.2.1",
-    "pocketbase": "^0.25.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@mantine/core": "^8.2.8",
+    "@mantine/dates": "^8.2.8",
+    "@mantine/form": "^8.2.8",
+    "@mantine/hooks": "^8.2.8",
+    "@mantine/modals": "^8.2.8",
+    "@mantine/notifications": "^8.2.8",
+    "@prisma/client": "^6.15.0",
+    "@prisma/extension-accelerate": "^2.0.2",
+    "@tabler/icons-react": "^3.34.1",
+    "next": "15.5.2",
+    "pocketbase": "^0.26.2",
+    "prisma": "^6.15.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,9 +30,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.2.1",
-    "postcss": "^8.5.3",
-    "postcss-preset-mantine": "^1.17.0",
+    "eslint-config-next": "15.5.2",
+    "postcss": "^8.5.6",
+    "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^5"
   }
