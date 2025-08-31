@@ -1,3 +1,3 @@
-This is a Next.js application that uses Mantine for its UI components. It also uses tabler for its icons. All components are stored in src/components. Prisma is used for the ORM. The application should implement both the backend and frontend via Next.js. It should follow Next.js best practices. It uses Next.js 15 and Mantine 8.
+This is a Next.js app router application that uses Mantine for its UI components. It also uses tabler for its icons. All components are stored in src/components. Prisma is used for the ORM. The application should implement both the backend and frontend via Next.js. It should follow Next.js best practices. It uses Next.js 15 and Mantine 8.
 
 The purpose of this application is to create a web app for an EMS organization that allows for managing certifications, calls, and inventory.

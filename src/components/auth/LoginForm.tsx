@@ -104,8 +104,10 @@ export function LoginForm() {
           </Button>
           <Center>
             <Group gap="xs">
-              <IconMail size={16} />
-              <Text size="sm">Don&apos;t have an account? Contact ems@canton.edu to join!</Text>
+              <Text size="sm">Don&apos;t have an account?</Text>
+              <Anchor size="sm" href="/register">
+                Register here
+              </Anchor>
             </Group>
           </Center>
         </Stack>

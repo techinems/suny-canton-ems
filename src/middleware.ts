@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getBaseUrl } from './lib/utils';
-import { createPocketBaseServer } from './lib/server/pocketbase';
+import { headers } from 'next/headers';
+import { auth } from './lib/auth';
 
 // Define paths that don't require authentication
-const publicPaths = ['/login', '/public'];
+const publicPaths = ['/login', '/register', '/public', '/api/auth'];
 
 export async function middleware(request: NextRequest) {
   // Get the path from the request
@@ -13,14 +14,17 @@ export async function middleware(request: NextRequest) {
   // Check if the path is public
   const isPublicPath = publicPaths.some(publicPath => path.startsWith(publicPath));
 
-  // Create a new PocketBase instance for this request
-  const pb = await createPocketBaseServer();
-  
-  // Check authentication using the request-scoped instance
-  const isAuthenticated = pb.authStore.isValid;
+  if (isPublicPath) {
+    return NextResponse.next();
+  }
 
-  // If the user is authenticated and trying to access the login page, redirect to dashboard
-  if (isAuthenticated && path === '/login') {
+  const session = await auth.api.getSession({
+        headers: await headers()
+  });
+  const isAuthenticated = !!session;
+
+  // If the user is authenticated and trying to access the login or register page, redirect to dashboard
+  if (isAuthenticated && (path === '/login' || path === '/register')) {
     const dashboardUrl = new URL('/dashboard', getBaseUrl(request));
     return NextResponse.redirect(dashboardUrl);
   }
@@ -40,14 +44,15 @@ export async function middleware(request: NextRequest) {
 
 // Configure which paths this middleware should run on
 export const config = {
+  runtime: 'nodejs',
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
+     * - api (API routes) - except auth routes which we need to handle
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 };

@@ -1,14 +1,16 @@
+'use client';
 import { useRouter } from 'next/navigation';
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { pb, isAuthenticated, getCurrentUser } from '../../lib/client/pocketbase';
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { authClient, useSession } from '@/lib/auth-client';
 
 // Types for our auth context
 interface User {
   id: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  role?: string;
+  name?: string;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface AuthContextType {
@@ -16,6 +18,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
   error: string | null;
 }
 
@@ -24,99 +27,81 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component that wraps the app and makes auth available to any child component
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Check if user is already authenticated on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setIsLoading(true);
-        // Use PocketBase's authStore to check authentication status
-        if (!isAuthenticated()) {
-          setUser(null);
-          return;
-        }
-        
-        // Get user data from PocketBase auth store
-        const pbUser = getCurrentUser();
-        if (pbUser) {
-          // Transform PocketBase user to match our User interface
-          // Avoid duplicate properties by using spread for additional fields
-          setUser({
-            id: pbUser.id,
-            email: pbUser.email,
-            first_name: pbUser.first_name,
-            last_name: pbUser.last_name,
-            role: pbUser.role,
-          });
-        } else {
-          setUser(null);
-        }
-      } catch {
-        // User is not authenticated
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const router = useRouter();
+  
+  // Use Better Auth's useSession hook
+  const { data: session, isPending: isLoading } = useSession();
+  
+  const user = session?.user ? {
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    emailVerified: session.user.emailVerified,
+    createdAt: session.user.createdAt,
+    updatedAt: session.user.updatedAt,
+  } : null;
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      setIsLoading(true);
       setError(null);
       
-      // Use PocketBase authentication
-      const authData = await pb.collection('users').authWithPassword(email, password);
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
       
-      if (authData && authData.record) {
-        // Transform PocketBase user to match our User interface
-        const pbUser = authData.record;
-        setUser({
-          id: pbUser.id,
-          email: pbUser.email,
-          first_name: pbUser.first_name,
-          last_name: pbUser.last_name,
-          role: pbUser.role
-        });
-        
-        // Navigate to dashboard on successful login
-        router.push('/dashboard');
+      if (result.error) {
+        throw new Error(result.error.message);
       }
+      
+      // Navigate to dashboard on successful login
+      router.push('/dashboard');
     } catch (err: unknown) {
       let errorMessage = 'Failed to login';
 
       if (err instanceof Error) {
         errorMessage = err.message;
-      } else if (typeof err === 'object' && err !== null) {
-        // Handle PocketBase error response
-        const pbError = err as { message?: string; data?: { message?: string } };
-        if (pbError.message) {
-          errorMessage = pbError.message;
-        } else if (pbError.data?.message) {
-          errorMessage = pbError.data.message;
-        }
       }
 
       setError(errorMessage);
       throw new Error(errorMessage);
-    } finally {
-      setIsLoading(false);
+    }
+  }, [router]);
+
+  const register = useCallback(async (email: string, password: string, name?: string) => {
+    try {
+      setError(null);
+      
+      const result = await authClient.signUp.email({
+        email,
+        password,
+        name: name || '',
+      });
+      
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      
+      // Navigate to dashboard on successful registration
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      let errorMessage = 'Failed to register';
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
   }, [router]);
 
   const logout = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setError(null);
       
-      // Use PocketBase logout
-      pb.authStore.clear();
-      setUser(null);
+      await authClient.signOut();
       
       // Navigate to login page after logout
       router.push('/login');
@@ -128,8 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       setError(errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   }, [router]);
 
@@ -139,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     login,
     logout,
+    register,
     error,
   };
 
