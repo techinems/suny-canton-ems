@@ -18,8 +18,9 @@ interface MemberDetailProps {
 
 export function MemberDetail({ member }: MemberDetailProps) {
   // Helper function to format date to a readable format
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   // Get position badge color
