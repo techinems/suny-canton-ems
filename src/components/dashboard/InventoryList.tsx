@@ -17,8 +17,8 @@ const getItemStatus = (item: InventoryItem) => {
     return { label: 'Out of Stock', color: 'red' };
   }
   
-  if (item.expiration_date) {
-    const expirationDate = new Date(item.expiration_date);
+  if (item.expirationDate) {
+    const expirationDate = item.expirationDate;
     const today = new Date();
     
     // Check if expired
@@ -73,7 +73,7 @@ export function InventoryList() {
       await deleteInventoryItem(item.id);
       notifications.show({
         title: 'Success',
-        message: `${item.item_name} was deleted successfully`,
+        message: `${item.itemName} was deleted successfully`,
         color: 'green',
         autoClose: 5000,
       });
@@ -81,7 +81,7 @@ export function InventoryList() {
     } catch {
       notifications.show({
         title: 'Error',
-        message: `Failed to delete ${item.item_name}`,
+        message: `Failed to delete ${item.itemName}`,
         color: 'red',
         autoClose: 5000,
       });
@@ -90,11 +90,11 @@ export function InventoryList() {
 
   const columns: Column<InventoryItem>[] = [
     {
-      key: 'item_name',
+      key: 'itemName',
       title: 'Item',
       render: (item) => (
         <div>
-          <Text size="sm" fw={500}>{item.item_name}</Text>
+          <Text size="sm" fw={500}>{item.itemName}</Text>
           {item.manufacturer && (
             <Text size="xs" c="dimmed">{item.manufacturer}</Text>
           )}
@@ -117,12 +117,12 @@ export function InventoryList() {
       }
     },
     {
-      key: 'expiration_date',
+      key: 'expirationDate',
       title: 'Expiration Date',
       render: (item) => (
         <Text>
-          {item.expiration_date 
-            ? new Date(item.expiration_date).toLocaleDateString() 
+          {item.expirationDate 
+            ? item.expirationDate.toLocaleDateString() 
             : 'N/A'
           }
         </Text>
@@ -162,7 +162,7 @@ export function InventoryList() {
       emptyMessage="No inventory items found"
       confirmDelete={{
         title: 'Confirm Deletion',
-        message: (item) => `Are you sure you want to delete ${item.item_name}? This action cannot be undone.`,
+        message: (item) => `Are you sure you want to delete ${item.itemName}? This action cannot be undone.`,
         onConfirm: handleDeleteItem
       }}
     />

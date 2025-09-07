@@ -1,84 +1,211 @@
 'use client';
-import { pb } from './pocketbase';
+
+interface RawCertification {
+  id: string;
+  certName: string;
+  memberId: string;
+  certScan: string;
+  certExpiration?: string | null;
+  certIssueDate?: string | null; 
+  certNumber?: string | null;
+  issuingAuthority?: string | null;
+  created: string;
+  updated: string;
+}
 
 export interface Certification {
   id: string;
-  cert_name: string;
-  member_id: string;
-  cert_scan: File | string;
-  cert_expiration?: string;
-  cert_issue_date?: string; 
-  cert_number?: string;
-  issuing_authority?: string;
-  created?: string;
-  updated?: string;
+  certName: string;
+  memberId: string;
+  certScan: File | string;
+  certExpiration?: Date | null;
+  certIssueDate?: Date | null; 
+  certNumber?: string | null;
+  issuingAuthority?: string | null;
+  created: Date;
+  updated: Date;
+}
+
+export interface CreateCertificationData {
+  certName: string;
+  memberId: string;
+  certScan: File | string;
+  certExpiration?: Date | null;
+  certIssueDate?: Date | null; 
+  certNumber?: string | null;
+  issuingAuthority?: string | null;
 }
 
 // Get file URL for certification scan
 export function getFileUrl(cert: Certification): string | undefined {
   // If it's a file send back a data url
-  if (typeof cert.cert_scan !== 'string') {
-    return URL.createObjectURL(cert.cert_scan);
+  if (typeof cert.certScan !== 'string') {
+    return URL.createObjectURL(cert.certScan);
   }
-  // Use PocketBase's built-in file URL method
-  return pb.files.getURL(cert, cert.cert_scan);
+  // For now, return the string as-is (could be a URL or base64)
+  return cert.certScan;
 }
 
 // Get all certifications for the current user
-export async function getUserCertifications() {
-  const userId = pb.authStore.record?.id;
-  if (!userId) {
-    throw new Error('User not authenticated');
+export async function getUserCertifications(): Promise<Certification[]> {
+  try {
+    const response = await fetch('/api/certifications/user');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const certifications: RawCertification[] = await response.json();
+    return certifications.map(cert => ({
+      ...cert,
+      certExpiration: cert.certExpiration ? new Date(cert.certExpiration) : null,
+      certIssueDate: cert.certIssueDate ? new Date(cert.certIssueDate) : null,
+      created: new Date(cert.created),
+      updated: new Date(cert.updated),
+    }));
+  } catch (error) {
+    console.error('Error fetching user certifications:', error);
+    throw error;
   }
-  
-  return await pb.collection('certifications').getFullList<Certification>({
-    filter: `member_id="${userId}"`,
-    sort: '-cert_expiration',
-  });
 }
 
 // Get all certifications
-export async function getAllCertifications() {
-  return await pb.collection('certifications').getFullList<Certification>();
+export async function getAllCertifications(): Promise<Certification[]> {
+  try {
+    const response = await fetch('/api/certifications');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const certifications: RawCertification[] = await response.json();
+    return certifications.map(cert => ({
+      ...cert,
+      certExpiration: cert.certExpiration ? new Date(cert.certExpiration) : null,
+      certIssueDate: cert.certIssueDate ? new Date(cert.certIssueDate) : null,
+      created: new Date(cert.created),
+      updated: new Date(cert.updated),
+    }));
+  } catch (error) {
+    console.error('Error fetching certifications:', error);
+    throw error;
+  }
 }
 
 // Get certifications for a specific member
-export async function getMemberCertifications(memberId: string) {
-  return await pb.collection('certifications').getFullList<Certification>({
-    filter: `member_id="${memberId}"`,
-    sort: '-cert_expiration',
-  });
+export async function getMemberCertifications(memberId: string): Promise<Certification[]> {
+  try {
+    const response = await fetch(`/api/certifications/member/${memberId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const certifications: RawCertification[] = await response.json();
+    return certifications.map(cert => ({
+      ...cert,
+      certExpiration: cert.certExpiration ? new Date(cert.certExpiration) : null,
+      certIssueDate: cert.certIssueDate ? new Date(cert.certIssueDate) : null,
+      created: new Date(cert.created),
+      updated: new Date(cert.updated),
+    }));
+  } catch (error) {
+    console.error('Error fetching member certifications:', error);
+    throw error;
+  }
 }
 
 // Get a single certification by ID
-export async function getCertification(id: string) {
-  return await pb.collection('certifications').getOne<Certification>(id);
+export async function getCertification(id: string): Promise<Certification> {
+  try {
+    const response = await fetch(`/api/certifications/${id}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const cert: RawCertification = await response.json();
+    return {
+      ...cert,
+      certExpiration: cert.certExpiration ? new Date(cert.certExpiration) : null,
+      certIssueDate: cert.certIssueDate ? new Date(cert.certIssueDate) : null,
+      created: new Date(cert.created),
+      updated: new Date(cert.updated),
+    };
+  } catch (error) {
+    console.error('Error fetching certification:', error);
+    throw error;
+  }
 }
 
 
 // Create a new certification
-export async function createCertification(certification: Omit<Certification, 'id' | 'created' | 'updated'>, userId?: string) {
-  const memberId = certification.member_id ?? userId ?? pb.authStore.record?.id
-  certification.member_id = memberId;
-  return await pb.collection('certifications').create<Certification>(certification);
+export async function createCertification(certification: CreateCertificationData): Promise<Certification> {
+  try {
+    const response = await fetch('/api/certifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(certification),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const cert: RawCertification = await response.json();
+    return {
+      ...cert,
+      certExpiration: cert.certExpiration ? new Date(cert.certExpiration) : null,
+      certIssueDate: cert.certIssueDate ? new Date(cert.certIssueDate) : null,
+      created: new Date(cert.created),
+      updated: new Date(cert.updated),
+    };
+  } catch (error) {
+    console.error('Error creating certification:', error);
+    throw error;
+  }
 }
 
 // Update an existing certification
-export async function updateCertification(id: string, certification: Partial<Certification>) {
-  return await pb.collection('certifications').update<Certification>(id, certification);
+export async function updateCertification(id: string, certification: Partial<CreateCertificationData>): Promise<Certification> {
+  try {
+    const response = await fetch(`/api/certifications/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(certification),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const cert: RawCertification = await response.json();
+    return {
+      ...cert,
+      certExpiration: cert.certExpiration ? new Date(cert.certExpiration) : null,
+      certIssueDate: cert.certIssueDate ? new Date(cert.certIssueDate) : null,
+      created: new Date(cert.created),
+      updated: new Date(cert.updated),
+    };
+  } catch (error) {
+    console.error('Error updating certification:', error);
+    throw error;
+  }
 }
 
 // Delete a certification
-export async function deleteCertification(id: string) {
-  return await pb.collection('certifications').delete(id);
+export async function deleteCertification(id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/certifications/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return true;
+  } catch (error) {
+    console.error('Error deleting certification:', error);
+    throw error;
+  }
 }
 
-// Helper to convert string dates from PocketBase to JavaScript Date objects
+// Helper to format certification dates for display
 export function formatCertificationDates(cert: Certification) {
   return {
     ...cert,
-    expiryDate: cert.cert_expiration ? new Date(cert.cert_expiration) : undefined,
-    issueDate: cert.cert_issue_date ? new Date(cert.cert_issue_date) : 
-               cert.created ? new Date(cert.created) : new Date(), // Fallback to created date or current date
+    expiryDate: cert.certExpiration || undefined,
+    issueDate: cert.certIssueDate || cert.created,
   };
 }

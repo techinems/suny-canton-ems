@@ -36,14 +36,14 @@ export function InventoryStats() {
         const lowStockItems = items.filter(item => item.quantity < 5 && item.quantity > 0).length;
         
         const expiringItems = items.filter(item => {
-          if (!item.expiration_date) return false;
-          const expDate = new Date(item.expiration_date);
+          if (!item.expirationDate) return false;
+          const expDate = item.expirationDate;
           return expDate > today && expDate <= thirtyDaysFromNow;
         }).length;
         
         const expiredItems = items.filter(item => {
-          if (!item.expiration_date) return false;
-          return new Date(item.expiration_date) < today;
+          if (!item.expirationDate) return false;
+          return item.expirationDate < today;
         }).length;
         
         setStats({
@@ -78,7 +78,7 @@ export function InventoryStats() {
     return inventory
       .filter(item => 
         (item.quantity < 5 && item.quantity > 0) || 
-        (item.expiration_date && new Date(item.expiration_date) < thirtyDaysFromNow)
+        (item.expirationDate && item.expirationDate < thirtyDaysFromNow)
       )
       .slice(0, 5); // Limit to 5 items
   };
@@ -89,7 +89,7 @@ export function InventoryStats() {
   const getItemStatus = (item: InventoryItem) => {
     const today = new Date();
     
-    if (item.expiration_date && new Date(item.expiration_date) < today) {
+    if (item.expirationDate && item.expirationDate < today) {
       return { 
         label: 'Expired', 
         color: 'red',
@@ -97,8 +97,8 @@ export function InventoryStats() {
       };
     }
     
-    if (item.expiration_date) {
-      const expDate = new Date(item.expiration_date);
+    if (item.expirationDate) {
+      const expDate = item.expirationDate;
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(today.getDate() + 30);
       
@@ -182,7 +182,7 @@ export function InventoryStats() {
                   style={{ cursor: 'pointer' }}
                 >
                   <Group justify="space-between" wrap="nowrap">
-                    <Text size="sm">{item.item_name}</Text>
+                    <Text size="sm">{item.itemName}</Text>
                     <Badge color={status.color} variant="light" size="sm">
                       {status.label}
                     </Badge>

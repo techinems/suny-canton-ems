@@ -153,7 +153,7 @@ export function Certifications({ certifications: initialCertifications }: Certif
       {/* Delete confirmation modal */}
       <Modal opened={opened} onClose={close} title="Confirm Deletion" centered>
         <Text mb="lg">
-          Are you sure you want to delete the certification: <strong>{certToDelete?.cert_name}</strong>?
+          Are you sure you want to delete the certification: <strong>{certToDelete?.certName}</strong>?
           This action cannot be undone.
         </Text>
         <Group justify="right">

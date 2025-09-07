@@ -13,13 +13,12 @@ import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
 
 // Helper function to format date and time
-const formatDateTime = (dateString: string) => {
-  const date = new Date(dateString);
+const formatDateTime = (date: Date) => {
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
 // Helper function to determine call status badge color
-const getStatusColor = (status: string | undefined) => {
+const getStatusColor = (status: string | null | undefined) => {
   switch(status) {
     case 'Complete':
       return 'green';
@@ -61,7 +60,7 @@ export function CallList() {
       await deleteCallLog(call.id);
       notifications.show({
         title: 'Success',
-        message: `Call at ${formatDateTime(call.call_received)} was deleted successfully`,
+        message: `Call at ${formatDateTime(call.callReceived)} was deleted successfully`,
         color: 'green',
         autoClose: 5000,
       });
@@ -84,9 +83,9 @@ export function CallList() {
         <div>
           <Group gap="xs">
             <IconClock size="1rem" />
-            <Text size="sm" fw={500}>{formatDateTime(call.call_received)}</Text>
+            <Text size="sm" fw={500}>{formatDateTime(call.callReceived)}</Text>
           </Group>
-          <Text size="xs" c="dimmed">On scene: {new Date(call.on_scene).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          <Text size="xs" c="dimmed">On scene: {call.onScene.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
         </div>
       )
     },
@@ -101,9 +100,9 @@ export function CallList() {
       render: (call) => <Text size="sm">{call.type || 'N/A'}</Text>
     },
     {
-      key: 'level_of_care',
+      key: 'levelOfCare',
       title: 'Level of Care',
-      render: (call) => <Text size="sm">{call.level_of_care}</Text>
+      render: (call) => <Text size="sm">{call.levelOfCare}</Text>
     },
     {
       key: 'status',
@@ -118,8 +117,8 @@ export function CallList() {
       key: 'duration',
       title: 'Duration',
       render: (call) => {
-        const start = new Date(call.call_received);
-        const end = new Date(call.back_in_service);
+        const start = call.callReceived;
+        const end = call.backInService;
         const durationMs = end.getTime() - start.getTime();
         const minutes = Math.floor(durationMs / 60000);
         const hours = Math.floor(minutes / 60);
@@ -157,7 +156,7 @@ export function CallList() {
       emptyMessage="No call logs found"
       confirmDelete={{
         title: 'Confirm Deletion',
-        message: (call) => `Are you sure you want to delete this call log from ${formatDateTime(call.call_received)}? This action cannot be undone.`,
+        message: (call) => `Are you sure you want to delete this call log from ${formatDateTime(call.callReceived)}? This action cannot be undone.`,
         onConfirm: handleDeleteCall
       }}
     />

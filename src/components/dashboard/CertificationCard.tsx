@@ -43,19 +43,19 @@ export function CertificationCard({ cert }: {cert: Certification}) {
           <ThemeIcon color="blue" variant="light" size="md" radius="md">
             <IconCertificate size="1.2rem" />
           </ThemeIcon>
-          <Text fw={700}>{cert.cert_name}</Text>
+          <Text fw={700}>{cert.certName}</Text>
         </Group>
       </Group>
       
-      {cert.issuing_authority && (
+      {cert.issuingAuthority && (
         <Text size="sm" c="dimmed" mb={5}>
-          Issued by: {cert.issuing_authority}
+          Issued by: {cert.issuingAuthority}
         </Text>
       )}
       
-      {cert.cert_number && (
+      {cert.certNumber && (
         <Text size="sm" c="dimmed" mb="xs">
-          Certificate #: {cert.cert_number}
+          Certificate #: {cert.certNumber}
         </Text>
       )}
 
@@ -74,13 +74,13 @@ export function CertificationCard({ cert }: {cert: Certification}) {
         size="sm"
         striped={daysRemaining <= 30}
         animated={daysRemaining <= 30}
-        mb={cert.cert_scan ? "xs" : undefined}
+        mb={cert.certScan ? "xs" : undefined}
       />
 
       <Group justify="space-between" mt="xs">
         <Badge color={color}>{status}</Badge>
         
-        {cert.cert_scan && cert.id && (
+        {cert.certScan && cert.id && (
           <Anchor href={getFileUrl(cert)} target="_blank" download>
             <Button 
               variant="light" 

@@ -28,12 +28,12 @@ export function CallStats() {
         
         // Filter calls for current year and month
         const callsThisYear = calls.filter(call => {
-          const callDate = new Date(call.call_received);
+          const callDate = call.callReceived;
           return callDate.getFullYear() === currentYear;
         });
         
         const callsThisMonth = callsThisYear.filter(call => {
-          const callDate = new Date(call.call_received);
+          const callDate = call.callReceived;
           return callDate.getMonth() === currentMonth;
         });
         
@@ -48,9 +48,9 @@ export function CallStats() {
         
         calls.forEach(call => {
           // Response time calculation (from call received to on scene)
-          if (call.call_received && call.on_scene) {
-            const receivedTime = new Date(call.call_received);
-            const onSceneTime = new Date(call.on_scene);
+          if (call.callReceived && call.onScene) {
+            const receivedTime = call.callReceived;
+            const onSceneTime = call.onScene;
             const responseTimeMinutes = (onSceneTime.getTime() - receivedTime.getTime()) / 60000;
             
             if (responseTimeMinutes > 0) {
@@ -59,9 +59,9 @@ export function CallStats() {
           }
           
           // Duration calculation (from call received to back in service)
-          if (call.call_received && call.back_in_service) {
-            const start = new Date(call.call_received);
-            const end = new Date(call.back_in_service);
+          if (call.callReceived && call.backInService) {
+            const start = call.callReceived;
+            const end = call.backInService;
             const durationMinutes = (end.getTime() - start.getTime()) / 60000;
             
             if (durationMinutes > 0) {
@@ -75,8 +75,8 @@ export function CallStats() {
           }
         });
         
-        const validResponseTimes = calls.filter(call => call.call_received && call.on_scene).length;
-        const validDurations = calls.filter(call => call.call_received && call.back_in_service).length;
+        const validResponseTimes = calls.filter(call => call.callReceived && call.onScene).length;
+        const validDurations = calls.filter(call => call.callReceived && call.backInService).length;
         
         const averageResponseTime = validResponseTimes > 0 ? Math.round(totalResponseTimeMinutes / validResponseTimes) : 0;
         const averageDuration = validDurations > 0 ? Math.round(totalDurationMinutes / validDurations) : 0;

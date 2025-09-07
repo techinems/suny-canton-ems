@@ -99,7 +99,7 @@ export function InventoryItemsSelector({
         return {
           itemId,
           quantity: quantityMap[itemId] || 1,
-          itemName: item.item_name,
+          itemName: item.itemName || 'Unknown Item',
           maxQuantity: item.quantity
         };
       });
@@ -131,7 +131,7 @@ export function InventoryItemsSelector({
       return {
         itemId,
         quantity: quantityMap[itemId] || 1,
-        itemName: item.item_name,
+        itemName: item.itemName || 'Unknown Item',
         maxQuantity: item.quantity
       };
     });

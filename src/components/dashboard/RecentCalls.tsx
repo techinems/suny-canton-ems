@@ -16,13 +16,12 @@ import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
 
 // Helper function to format date and time
-const formatDateTime = (dateString: string) => {
-  const date = new Date(dateString);
+const formatDateTime = (date: Date) => {
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
 // Helper function to determine call status badge color
-const getStatusColor = (status: string | undefined) => {
+const getStatusColor = (status: string | null | undefined) => {
   switch(status) {
     case 'Complete':
       return 'green';
@@ -91,7 +90,7 @@ export function RecentCalls({ limit = 5 }: { limit?: number }) {
               <Stack gap={4} style={{ flexGrow: 1 }}>
                 <Group gap="xs">
                   <IconClock size="1rem" />
-                  <Text size="sm" fw={500}>{formatDateTime(call.call_received)}</Text>
+                  <Text size="sm" fw={500}>{formatDateTime(call.callReceived)}</Text>
                   <Badge color={getStatusColor(call.status)} size="sm">
                     {call.status || 'In Progress'}
                   </Badge>

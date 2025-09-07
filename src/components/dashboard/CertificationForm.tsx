@@ -16,16 +16,16 @@ import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCalendar, IconUpload, IconAlertCircle } from '@tabler/icons-react';
-import { createCertification, updateCertification, Certification } from '@/lib/client/certificationService';
+import { createCertification, updateCertification } from '@/lib/client/certificationService';
 
 interface CertificationFormProps {
   initialValues?: {
     id?: string;
-    cert_name?: string;
-    cert_expiration?: Date;
-    cert_issue_date?: Date;
-    cert_number?: string;
-    issuing_authority?: string;
+    certName?: string;
+    certExpiration?: Date;
+    certIssueDate?: Date;
+    certNumber?: string;
+    issuingAuthority?: string;
   };
 }
 
@@ -38,17 +38,17 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
 
   const form = useForm({
     initialValues: {
-      cert_name: initialValues?.cert_name || '',
-      cert_expiration: initialValues?.cert_expiration || null,
-      cert_issue_date: initialValues?.cert_issue_date || new Date(),
-      cert_number: initialValues?.cert_number || '',
-      issuing_authority: initialValues?.issuing_authority || '',
-      cert_scan: null as File | null,
+      certName: initialValues?.certName || '',
+      certExpiration: initialValues?.certExpiration || null,
+      certIssueDate: initialValues?.certIssueDate || new Date(),
+      certNumber: initialValues?.certNumber || '',
+      issuingAuthority: initialValues?.issuingAuthority || '',
+      certScan: null as File | null,
     },
     validate: {
-      cert_name: (value) => (!value ? 'Certification name is required' : null),
-      cert_expiration: (value) => (!value ? 'Expiration date is required' : null),
-      cert_scan: (value) => (!value && !isEditing ? 'Certificate scan is required' : null),
+      certName: (value) => (!value ? 'Certification name is required' : null),
+      certExpiration: (value) => (!value ? 'Expiration date is required' : null),
+      certScan: (value) => (!value && !isEditing ? 'Certificate scan is required' : null),
     },
   });
 
@@ -56,29 +56,26 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
     try {
       setLoading(true);
       setError(null);
-      if (!values.cert_scan && !isEditing) {
+      if (!values.certScan && !isEditing) {
         setError('Certificate scan is required');
         setLoading(false);
         return;
       }
       
-      // Create a typesafe certification object
-      const certData: Partial<Omit<Certification, 'id' | 'created' | 'updated'>> = {
-        cert_name: values.cert_name,
-        cert_expiration: values.cert_expiration ? values.cert_expiration.toISOString().split('T')[0] : undefined,
-        cert_issue_date: values.cert_issue_date ? values.cert_issue_date.toISOString().split('T')[0] : undefined,
-        cert_number: values.cert_number || undefined,
-        issuing_authority: values.issuing_authority || undefined,
+      // Create a typesafe certification object using the new interface
+      const certData = {
+        certName: values.certName,
+        certExpiration: values.certExpiration,
+        certIssueDate: values.certIssueDate,
+        certNumber: values.certNumber || null,
+        issuingAuthority: values.issuingAuthority || null,
+        certScan: values.certScan || '',
+        memberId: '', // This should be set by the API based on the authenticated user
       };
-      
-      // Only add the cert_scan if there's a file
-      if (values.cert_scan) {
-        certData.cert_scan = values.cert_scan;
-      }
       
       // For new certifications
       if (!isEditing) {
-        await createCertification(certData as Omit<Certification, 'id' | 'created' | 'updated'>);
+        await createCertification(certData);
       } 
       // For updates
       else if (initialValues?.id) {
@@ -87,7 +84,7 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
 
       notifications.show({
         title: isEditing ? 'Certification Updated' : 'Certification Added',
-        message: `${values.cert_name} has been ${isEditing ? 'updated' : 'added'} successfully.`,
+        message: `${values.certName} has been ${isEditing ? 'updated' : 'added'} successfully.`,
         color: 'green',
       });
 
@@ -123,7 +120,7 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
             required
             label="Certification Name"
             placeholder="e.g., CPR, EMT-B, ACLS"
-            {...form.getInputProps('cert_name')}
+            {...form.getInputProps('certName')}
           />
           
           <Group grow>
@@ -134,7 +131,7 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
               valueFormat="YYYY-MM-DD"
               maxDate={new Date()}
               leftSection={<IconCalendar size="1rem" />}
-              {...form.getInputProps('cert_issue_date')}
+              {...form.getInputProps('certIssueDate')}
             />
             
             <DatePickerInput
@@ -144,20 +141,20 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
               valueFormat="YYYY-MM-DD"
               minDate={new Date()}
               leftSection={<IconCalendar size="1rem" />}
-              {...form.getInputProps('cert_expiration')}
+              {...form.getInputProps('certExpiration')}
             />
           </Group>
           
           <TextInput
             label="Certification Number"
             placeholder="Enter certification number if applicable"
-            {...form.getInputProps('cert_number')}
+            {...form.getInputProps('certNumber')}
           />
           
           <TextInput
             label="Issuing Authority"
             placeholder="e.g., American Heart Association, NREMT"
-            {...form.getInputProps('issuing_authority')}
+            {...form.getInputProps('issuingAuthority')}
           />
           
           <FileInput
@@ -167,7 +164,7 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
             leftSection={<IconUpload size="1rem" />}
             clearable
             required={!isEditing}
-            {...form.getInputProps('cert_scan')}
+            {...form.getInputProps('certScan')}
           />
           
           <Group justify="flex-end" mt="md">

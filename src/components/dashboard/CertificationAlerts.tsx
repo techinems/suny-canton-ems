@@ -29,9 +29,9 @@ export function CertificationAlerts() {
 
   // Calculate which certifications are expired or expiring soon (within 90 days)
   const alertCertifications = certifications.filter(cert => {
-    if (!cert.cert_expiration) return false;
+    if (!cert.certExpiration) return false;
     
-    const expiryDate = new Date(cert.cert_expiration);
+    const expiryDate = cert.certExpiration;
     const now = new Date();
     const daysUntilExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     
@@ -55,7 +55,7 @@ export function CertificationAlerts() {
       {alertCertifications.length > 0 ? (
         <Stack>
           {alertCertifications.map(cert => {
-            const expiryDate = cert.cert_expiration ? new Date(cert.cert_expiration) : null;
+            const expiryDate = cert.certExpiration;
             const now = new Date();
             const isExpired = expiryDate && expiryDate < now;
             const daysUntilExpiry = expiryDate 
@@ -65,7 +65,7 @@ export function CertificationAlerts() {
             return (
               <Box key={cert.id} mb="sm">
                 <Group justify="space-between" wrap="nowrap">
-                  <Text fw={500}>{cert.cert_name}</Text>
+                  <Text fw={500}>{cert.certName}</Text>
                   <Badge 
                     color={isExpired ? 'red' : 'yellow'}
                   >

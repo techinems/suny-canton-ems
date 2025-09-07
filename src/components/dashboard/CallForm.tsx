@@ -31,42 +31,42 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
 
   const form = useForm({
     initialValues: {
-      call_received: new Date(),
-      call_enroute: new Date(),
-      on_scene: new Date(),
-      back_in_service: new Date(),
-      level_of_care: 'EMT' as 'EMT' | 'None',
-      dispatch_info: '',
+      callReceived: new Date(),
+      callEnroute: new Date(),
+      onScene: new Date(),
+      backInService: new Date(),
+      levelOfCare: 'EMT' as 'EMT' | 'None',
+      dispatchInfo: '',
       location: '',
-      jumpbag_used: false,
+      jumpbagUsed: false,
       type: undefined as 'Standby' | undefined,
-      items_used: [] as string[],
+      itemsUsed: [] as string[],
       crew: [] as string[],
       comments: '',
       status: undefined as 'Cancelled enroute' | 'Complete' | undefined,
-      // We'll keep the original items_used for compatibility, but use our ItemWithQuantity UI
+      // We'll keep the original itemsUsed for compatibility, but use our ItemWithQuantity UI
       itemsWithQuantities: [] as ItemWithQuantity[],
     },
     validate: {
       location: (value) => value.trim().length === 0 ? 'Location is required' : null,
-      call_received: (value) => {
+      callReceived: (value) => {
         if (!value) return 'Call received time is required';
       },
-      call_enroute: (value, values) => {
+      callEnroute: (value, values) => {
         if (!value) return 'Call enroute time is required';
-        if (values.call_received && value < values.call_received) 
+        if (values.callReceived && value < values.callReceived) 
           return 'Call enroute time must be after call received time';
         return null;
       },
-      on_scene: (value, values) => {
+      onScene: (value, values) => {
         if (!value) return 'On scene time is required';
-        if (values.call_enroute && value < values.call_enroute) 
+        if (values.callEnroute && value < values.callEnroute) 
           return 'On scene time must be after call enroute time';
         return null;
       },
-      back_in_service: (value, values) => {
+      backInService: (value, values) => {
         if (!value) return 'Back in service time is required';
-        if (values.on_scene && value < values.on_scene) 
+        if (values.onScene && value < values.onScene) 
           return 'Back in service time must be after on scene time';
         return null;
       },
@@ -83,22 +83,29 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
         
         // Parse dates from strings to Date objects for form
         form.setValues({
-          ...loadedCall,
-          call_received: new Date(loadedCall.call_received),
-          call_enroute: new Date(loadedCall.call_enroute),
-          on_scene: new Date(loadedCall.on_scene),
-          back_in_service: new Date(loadedCall.back_in_service),
-          items_used: loadedCall.items_used || [],
+          callReceived: new Date(loadedCall.callReceived),
+          callEnroute: new Date(loadedCall.callEnroute),
+          onScene: new Date(loadedCall.onScene),
+          backInService: new Date(loadedCall.backInService),
+          levelOfCare: loadedCall.levelOfCare,
+          dispatchInfo: loadedCall.dispatchInfo || '',
+          location: loadedCall.location,
+          jumpbagUsed: loadedCall.jumpbagUsed || false,
+          type: loadedCall.type || undefined,
+          itemsUsed: loadedCall.itemsUsed || [],
           crew: loadedCall.crew || [],
+          comments: loadedCall.comments || '',
+          status: loadedCall.status || undefined,
+          itemsWithQuantities: [],
         });
         
         // If there are items used, load their details for the quantity interface
-        if (loadedCall.items_used && loadedCall.items_used.length > 0) {
+        if (loadedCall.itemsUsed && loadedCall.itemsUsed.length > 0) {
           const itemsWithQuantities: ItemWithQuantity[] = [];
           const itemCounts: Record<string, number> = {};
           
           // Count occurrences of each item ID to determine quantities
-          for (const itemId of loadedCall.items_used) {
+          for (const itemId of loadedCall.itemsUsed) {
             if (itemId) {
               itemCounts[itemId] = (itemCounts[itemId] || 0) + 1;
             }
@@ -111,7 +118,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
               itemsWithQuantities.push({
                 itemId,
                 quantity: itemCounts[itemId], // Use the counted quantity
-                itemName: item.item_name,
+                itemName: item.itemName || 'Unknown Item',
                 maxQuantity: item.quantity + itemCounts[itemId] // Add the used quantity back to max
               });
             } catch (error) {
@@ -134,11 +141,11 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
     async function loadInventoryItems() {
       try {
         const items = await getInventoryItems();
-        setInventoryItems(items.map(item => ({
+        setInventoryItems(items.map((item: InventoryItem) => ({
           value: item.id,
-          label: item.item_name
+          label: item.itemName || 'Unknown Item'
         })));
-        const itemsMap = items.reduce((acc, item) => {
+        const itemsMap = items.reduce((acc: Record<string, InventoryItem>, item: InventoryItem) => {
           acc[item.id] = item;
           return acc;
         }, {} as Record<string, InventoryItem>);
@@ -199,15 +206,15 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
         }
       });
 
-      // Convert dates to ISO strings for PocketBase
+      // Convert dates for API call
       const callData = {
         ...values,
-        call_received: values.call_received.toISOString(),
-        call_enroute: values.call_enroute.toISOString(),
-        on_scene: values.on_scene.toISOString(),
-        back_in_service: values.back_in_service.toISOString(),
+        callReceived: values.callReceived,
+        callEnroute: values.callEnroute,
+        onScene: values.onScene,
+        backInService: values.backInService,
         // Use the expanded array that contains item IDs repeated based on quantity
-        items_used: expandedItemsUsed,
+        itemsUsed: expandedItemsUsed,
       };
 
       if (isEditing && callId) {
@@ -237,7 +244,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
   };
 
   const handleItemsChange = useCallback((items: string[]) => {
-    form.setFieldValue('items_used', items);
+    form.setFieldValue('itemsUsed', items);
   }, [form]);
 
   const handleItemsWithQuantitiesChange = useCallback((items: ItemWithQuantity[]) => {
@@ -289,7 +296,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 required
                 clearable={false}
                 maxDate={today}
-                {...form.getInputProps('call_received')}
+                {...form.getInputProps('callReceived')}
               />
               
               <DateTimePicker
@@ -298,7 +305,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 required
                 clearable={false}
                 maxDate={today}
-                {...form.getInputProps('call_enroute')}
+                {...form.getInputProps('callEnroute')}
               />
             </Group>
             
@@ -309,7 +316,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 required
                 clearable={false}
                 maxDate={today}
-                {...form.getInputProps('on_scene')}
+                {...form.getInputProps('onScene')}
               />
               
               <DateTimePicker
@@ -318,7 +325,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 required
                 clearable={false}
                 maxDate={today}
-                {...form.getInputProps('back_in_service')}
+                {...form.getInputProps('backInService')}
               />
             </Group>
             
@@ -331,7 +338,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                   { value: 'EMT', label: 'EMT' },
                   { value: 'None', label: 'None' }
                 ]}
-                {...form.getInputProps('level_of_care')}
+                {...form.getInputProps('levelOfCare')}
               />
               
               <Select
@@ -360,20 +367,20 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
               <Checkbox
                 label="Jump bag used"
                 mt="md"
-                {...form.getInputProps('jumpbag_used', { type: 'checkbox' })}
+                {...form.getInputProps('jumpbagUsed', { type: 'checkbox' })}
               />
             </Group>
             
             <TextInput
               label="Dispatch Information"
               placeholder="Enter dispatch information"
-              {...form.getInputProps('dispatch_info')}
+              {...form.getInputProps('dispatchInfo')}
             />
             
             <InventoryItemsSelector
               inventoryItems={inventoryItems}
               inventoryItemsMap={inventoryItemsMap}
-              selectedItemIds={form.values.items_used}
+              selectedItemIds={form.values.itemsUsed}
               onItemsChange={handleItemsChange}
               onItemsWithQuantitiesChange={handleItemsWithQuantitiesChange}
             />
