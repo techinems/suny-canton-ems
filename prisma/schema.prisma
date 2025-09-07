@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,19 +13,20 @@ model User {
   firstName          String?            @map("first_name")
   lastName           String?            @map("last_name")
   preferredName      String?            @map("preferred_name")
+  avatar             String?
   shirtSize          ShirtSize?         @map("shirt_size")
-  dob                DateTime?          @db.Date
+  dob                DateTime           @db.Date
   cantonEmail        String?            @map("canton_email")
-  position           Position           @default(MEMBER)
+  position           Position
   major              String?
-  membershipStanding MembershipStanding @default(GOOD) @map("membership_standing")
-  cantonCardId       String?            @map("canton_card_id")
-  gpa                Float?
+  membershipStanding MembershipStanding @map("membership_standing")
+  cantonCardId       String             @map("canton_card_id")
+  gpa                Float
   phoneNumber        String?            @map("phone_number")
   medicalLevel       MedicalLevel?      @map("medical_level")
-  housingType        HousingType?       @map("housing_type")
+  housingType        HousingType        @map("housing_type")
   building           String?
-  roomNumber         Int?               @map("room_number")
+  roomNumber         Int                @map("room_number")
   homeAddress        String?            @map("home_address")
   localAddress       String?            @map("local_address")
   createdAt          DateTime           @default(now()) @map("created_at")
@@ -35,11 +35,9 @@ model User {
   name               String?
   updatedAt          DateTime           @updatedAt @map("updated_at")
   accounts           Account[]
-  callsAsCrewChief   CallLog[]          @relation("CrewChiefCalls")
-  certifications     Certification[]
-  complianceChecks   ComplianceCheck[]
+  certifications     Certification[]    @relation("UserCertifications")
+  complianceChecks   ComplianceCheck[]  @relation("UserComplianceChecks")
   sessions           Session[]
-  callsAsMember      CallLog[]          @relation("CallMembers")
 
   @@map("users")
 }
@@ -77,112 +75,129 @@ model Session {
   @@map("session")
 }
 
-
-
 model CallLog {
-  id                String    @id @default(cuid())
-  callDate          DateTime? @map("call_date") @db.Date
-  enRouteDate       DateTime? @map("en_route_date") @db.Date
-  onSceneDate       DateTime? @map("on_scene_date") @db.Date
-  clearDate         DateTime? @map("clear_date") @db.Date
-  location          String?
-  nature            String?
-  transportRequired Boolean   @default(false) @map("transport_required")
-  crewChiefId       String?   @map("crew_chief_id")
-  memberIds         String[]  @map("member_ids")
-  notes             String?
-  created           DateTime  @default(now())
-  updated           DateTime  @updatedAt
-  crewChief         User?     @relation("CrewChiefCalls", fields: [crewChiefId], references: [id])
-  members           User[]    @relation("CallMembers")
+  id            String      @id @default(cuid())
+  callReceived  DateTime    @map("call_received")
+  callEnroute   DateTime    @map("call_enroute")
+  onScene       DateTime    @map("on_scene")
+  backInService DateTime    @map("back_in_service")
+  levelOfCare   LevelOfCare @map("level_of_care")
+  dispatchInfo  String?     @map("dispatch_info")
+  location      String
+  jumpbagUsed   Boolean?    @map("jumpbag_used")
+  type          CallType?
+  itemsUsed     String[]    @map("items_used") // References to inventory items
+  crew          String[] // References to user IDs
+  comments      String?
+  status        CallStatus?
+  created       DateTime    @default(now())
+  updated       DateTime    @updatedAt
 
   @@map("call_log")
 }
 
 model Certification {
-  id             String    @id @default(cuid())
-  name           String
-  userId         String    @map("user_id")
-  document       String?
-  issueDate      DateTime? @map("issue_date") @db.Date
-  expirationDate DateTime? @map("expiration_date") @db.Date
-  issuingAgency  String?   @map("issuing_agency")
-  certNumber     String?   @map("cert_number")
-  created        DateTime  @default(now())
-  updated        DateTime  @updatedAt
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String    @id @default(cuid())
+  certName         String    @map("cert_name")
+  memberId         String    @map("member_id")
+  certScan         String    @map("cert_scan")
+  certIssueDate    DateTime? @map("cert_issue_date") @db.Date
+  certExpiration   DateTime? @map("cert_expiration") @db.Date
+  certNumber       String?   @map("cert_number")
+  issuingAuthority String?   @map("issuing_authority")
+  created          DateTime  @default(now())
+  updated          DateTime  @updatedAt
+  user             User      @relation("UserCertifications", fields: [memberId], references: [id], onDelete: Cascade)
 
   @@map("certifications")
 }
 
 model ComplianceCheck {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  checkDate DateTime @map("check_date") @db.Date
-  created   DateTime @default(now())
-  updated   DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String         @id @default(cuid())
+  checkType     ComplianceType @map("check_type")
+  memberChecked String         @map("member_checked")
+  checkDate     DateTime       @map("check_date") @db.Date
+  created       DateTime       @default(now())
+  updated       DateTime       @updatedAt
+  user          User           @relation("UserComplianceChecks", fields: [memberChecked], references: [id], onDelete: Cascade)
 
   @@map("compliance_checks")
 }
 
 model Inventory {
-  id             String    @id @default(cuid())
-  name           String
-  description    String?
-  category       String?
-  quantity       Int
-  location       String?
-  purchaseDate   DateTime? @map("purchase_date") @db.Date
-  expirationDate DateTime? @map("expiration_date") @db.Date
-  cost           Float?
-  supplier       String?
-  critical       Boolean   @default(false)
-  lastChecked    DateTime? @map("last_checked") @db.Date
-  created        DateTime  @default(now())
-  updated        DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  itemName          String?   @map("item_name")
+  manufacturer      String?
+  description       String?
+  quantity          Float
+  size              String?
+  manufacturingDate DateTime? @map("manufacturing_date") @db.Date
+  purchaseDate      DateTime? @map("purchase_date") @db.Date
+  price             Float?
+  paidBy            String?   @map("paid_by")
+  disposable        Boolean?
+  expirationDate    DateTime? @map("expiration_date") @db.Date
+  created           DateTime  @default(now())
+  updated           DateTime  @updatedAt
 
   @@map("inventory")
 }
 
 enum ShirtSize {
-  XS
-  S
-  M
-  L
-  XL
-  XXL
-  XXXL
+  XS   @map("xs")
+  S    @map("s")
+  M    @map("m")
+  L    @map("l")
+  XL   @map("xl")
+  XXL  @map("xxl")
+  XXXL @map("xxxl")
 }
 
 enum Position {
-  PRESIDENT
-  VICE_PRESIDENT
-  SECRETARY
-  TREASURER
-  CAPTAIN
-  LIEUTENANT
-  MEMBER
-  PROBATIONARY_MEMBER
-  ALUMNI
+  ADVISOR        @map("Advisor")
+  PRESIDENT      @map("President")
+  VICE_PRESIDENT @map("Vice President")
+  SECRETARY      @map("Secretary")
+  TREASURER      @map("Treasurer")
+  SENATOR        @map("Senator")
+  MEMBER         @map("Member")
+  HONOR_ROLL     @map("Honor Roll")
+  AUXILIARY      @map("Auxillary")
 }
 
 enum MembershipStanding {
-  GOOD
-  PROBATION
-  INACTIVE
+  GOOD @map("Good")
+  BAD  @map("Bad")
 }
 
 enum MedicalLevel {
-  EMR
-  EMT
-  AEMT
+  EMT             @map("EMT")
+  FIRST_RESPONDER @map("First Responder")
 }
 
 enum HousingType {
-  ON_CAMPUS
-  OFF_CAMPUS
-  COMMUTER
+  ON_CAMPUS  @map("On Campus")
+  OFF_CAMPUS @map("Off Campus")
+}
+
+enum LevelOfCare {
+  EMT  @map("EMT")
+  NONE @map("None")
+}
+
+enum CallType {
+  STANDBY @map("Standby")
+}
+
+enum CallStatus {
+  CANCELLED_ENROUTE @map("Cancelled enroute")
+  COMPLETE          @map("Complete")
+}
+
+enum ComplianceType {
+  SEX_OFFENDER @map("Sex Offender")
+  CONDUCT      @map("Conduct")
+  GPA          @map("GPA")
 }
 
 model Verification {
