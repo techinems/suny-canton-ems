@@ -15,15 +15,19 @@ import { useRouter } from 'next/navigation';
 // Helper function to get badge color based on member position
 const getPositionColor = (position: string): string => {
   const colorMap: Record<string, string> = {
-    'Advisor': 'blue',
-    'President': 'violet',
-    'Vice President': 'indigo',
-    'Secretary': 'teal',
-    'Treasurer': 'cyan',
-    'Senator': 'green',
-    'Member': 'gray',
-    'Honor Roll': 'yellow',
-    'Auxillary': 'orange'
+    'ADVISOR': 'blue',
+    'PRESIDENT': 'violet',
+    'VICE_PRESIDENT': 'indigo',
+    'SECRETARY': 'teal',
+    'TREASURER': 'cyan',
+    'SENATOR': 'green',
+    'MEMBER': 'gray',
+    'PROBATIONARY_MEMBER': 'yellow',
+    'LIEUTENANT': 'orange',
+    'CAPTAIN': 'red',
+    'ALUMNI': 'gray',
+    'HONOR_ROLL': 'yellow',
+    'AUXILIARY': 'orange'
   };
   
   return colorMap[position] || 'gray';
@@ -31,7 +35,33 @@ const getPositionColor = (position: string): string => {
 
 // Helper function to get badge color based on membership standing
 const getStandingColor = (standing: string): string => {
-  return standing === 'Good' ? 'green' : 'red';
+  return standing === 'GOOD' ? 'green' : 'red';
+};
+
+// Helper function to format position display name
+const formatPosition = (position: string): string => {
+  const positionMap: Record<string, string> = {
+    'MEMBER': 'Member',
+    'PROBATIONARY_MEMBER': 'Probationary Member',
+    'LIEUTENANT': 'Lieutenant',
+    'CAPTAIN': 'Captain',
+    'TREASURER': 'Treasurer',
+    'SECRETARY': 'Secretary',
+    'VICE_PRESIDENT': 'Vice President',
+    'PRESIDENT': 'President',
+    'ALUMNI': 'Alumni',
+    'ADVISOR': 'Advisor',
+    'SENATOR': 'Senator',
+    'HONOR_ROLL': 'Honor Roll',
+    'AUXILIARY': 'Auxiliary'
+  };
+  
+  return positionMap[position] || position;
+};
+
+// Helper function to format standing display name
+const formatStanding = (standing: string): string => {
+  return standing === 'GOOD' ? 'Good' : 'Bad';
 };
 
 export function MemberList() {
@@ -111,27 +141,27 @@ export function MemberList() {
       title: 'Position',
       render: (member) => (
         <Badge color={getPositionColor(member.position)}>
-          {member.position}
+          {formatPosition(member.position)}
         </Badge>
       )
     },
     {
-      key: 'medical_level',
+      key: 'medicalLevel',
       title: 'Medical Level',
       render: (member) => (
-        member.medical_level ? (
-          <Text size="sm">{member.medical_level}</Text>
+        member.medicalLevel ? (
+          <Text size="sm">{member.medicalLevel}</Text>
         ) : (
           <Text size="sm" c="dimmed">Not specified</Text>
         )
       )
     },
     {
-      key: 'membership_standing',
+      key: 'membershipStanding',
       title: 'Membership',
       render: (member) => (
-        <Badge color={getStandingColor(member.membership_standing)}>
-          {member.membership_standing}
+        <Badge color={getStandingColor(member.membershipStanding)}>
+          {formatStanding(member.membershipStanding)}
         </Badge>
       )
     },
@@ -141,7 +171,7 @@ export function MemberList() {
       render: (member) => (
         <>
           <Text size="sm">{member.email}</Text>
-          <Text size="xs">{member.phone_number || 'No phone number'}</Text>
+          <Text size="xs">{member.phoneNumber || 'No phone number'}</Text>
         </>
       )
     }

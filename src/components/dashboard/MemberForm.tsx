@@ -26,13 +26,13 @@ interface MemberFormProps {
 
 // Default values for a new member
 const defaultMember: Partial<Member> = {
-  position: 'Member',
-  membership_standing: 'Good',
-  housing_type: 'On Campus',
-  room_number: 0,
+  position: 'MEMBER',
+  membershipStanding: 'GOOD',
+  housingType: 'ON_CAMPUS',
+  roomNumber: undefined,
   gpa: 2.0,
-  canton_card_id: '',
-  dob: new Date().toISOString().split('T')[0]
+  cantonCardId: '',
+  dob: new Date()
 };
 
 export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
@@ -66,10 +66,10 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
     if (!member.email) newErrors.email = 'Email is required';
     if (!isEditing && !password) newErrors.password = 'Password is required';
     if (!isEditing && password !== passwordConfirm) newErrors.passwordConfirm = 'Passwords do not match';
-    if (!member.first_name) newErrors.first_name = 'First name is required';
-    if (!member.last_name) newErrors.last_name = 'Last name is required';
+    if (!member.firstName) newErrors.firstName = 'First name is required';
+    if (!member.lastName) newErrors.lastName = 'Last name is required';
     if (!member.dob) newErrors.dob = 'Date of birth is required';
-    if (!member.canton_card_id) newErrors.canton_card_id = 'Canton card ID is required';
+    if (!member.cantonCardId) newErrors.cantonCardId = 'Canton card ID is required';
     if (!member.gpa) newErrors.gpa = 'GPA is required';
 
     // Validate email format
@@ -78,8 +78,8 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
     }
 
     // Validate Canton email if provided
-    if (member.canton_email && !isEmail(member.canton_email)) {
-      newErrors.canton_email = 'Invalid email format';
+    if (member.cantonEmail && !isEmail(member.cantonEmail)) {
+      newErrors.cantonEmail = 'Invalid email format';
     }
 
     setErrors(newErrors);
@@ -98,16 +98,19 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
     try {
       let result;
 
-      // Create a clean data object without id, created, or updated fields
+      // Create a clean data object without id, createdAt, or updatedAt fields
       const memberData: Partial<Member> = { 
         ...member,
-        emailVisibility: true, // Always set email visibility to false
-        membership_standing: member.membership_standing || 'Good'
+        emailVerified: true, // Set email verification to true
+        membershipStanding: member.membershipStanding || 'GOOD'
       };
       
-      // Add avatar to the data if there's a file selected
+      // Handle avatar file upload - in a real app, you'd upload to a file service
+      // For now, we'll skip file handling since it needs to be a URL string
       if (avatar) {
-        memberData.avatar = avatar;
+        // TODO: Implement file upload to a service like AWS S3, Cloudinary, etc.
+        // and set memberData.avatar to the returned URL
+        console.warn('Avatar upload not yet implemented');
       }
 
       // Create or update based on isEditing flag
@@ -173,9 +176,9 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                       <TextInput
                         label="First Name"
                         placeholder="First Name"
-                        value={member.first_name || ''}
-                        onChange={(e) => handleChange('first_name', e.target.value)}
-                        error={errors.first_name}
+                        value={member.firstName || ''}
+                        onChange={(e) => handleChange('firstName', e.target.value)}
+                        error={errors.firstName}
                         required
                       />
                     </Grid.Col>
@@ -183,9 +186,9 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                       <TextInput
                         label="Last Name"
                         placeholder="Last Name"
-                        value={member.last_name || ''}
-                        onChange={(e) => handleChange('last_name', e.target.value)}
-                        error={errors.last_name}
+                        value={member.lastName || ''}
+                        onChange={(e) => handleChange('lastName', e.target.value)}
+                        error={errors.lastName}
                         required
                       />
                     </Grid.Col>
@@ -193,8 +196,8 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                       <TextInput
                         label="Preferred Name"
                         placeholder="Preferred Name (optional)"
-                        value={member.preferred_name || ''}
-                        onChange={(e) => handleChange('preferred_name', e.target.value)}
+                        value={member.preferredName || ''}
+                        onChange={(e) => handleChange('preferredName', e.target.value)}
                       />
                     </Grid.Col>
                   </Grid>
@@ -214,9 +217,9 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                       <TextInput
                         label="Canton Email"
                         placeholder="Canton Email (optional)"
-                        value={member.canton_email || ''}
-                        onChange={(e) => handleChange('canton_email', e.target.value)}
-                        error={errors.canton_email}
+                        value={member.cantonEmail || ''}
+                        onChange={(e) => handleChange('cantonEmail', e.target.value)}
+                        error={errors.cantonEmail}
                       />
                     </Grid.Col>
                   </Grid>
@@ -252,7 +255,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                         label="Date of Birth"
                         placeholder="Date of Birth"
                         value={member.dob ? new Date(member.dob) : null}
-                        onChange={(date) => handleChange('dob', date ? date.toISOString().split('T')[0] : null)}
+                        onChange={(date) => handleChange('dob', date || null)}
                         error={errors.dob}
                         required
                       />
@@ -261,8 +264,8 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                       <TextInput
                         label="Phone Number"
                         placeholder="Phone Number"
-                        value={member.phone_number || ''}
-                        onChange={(e) => handleChange('phone_number', e.target.value)}
+                        value={member.phoneNumber || ''}
+                        onChange={(e) => handleChange('phoneNumber', e.target.value)}
                       />
                     </Grid.Col>
                   </Grid>
@@ -309,9 +312,9 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                   <TextInput
                     label="Canton Card ID"
                     placeholder="Canton Card ID"
-                    value={member.canton_card_id || ''}
-                    onChange={(e) => handleChange('canton_card_id', e.target.value)}
-                    error={errors.canton_card_id}
+                    value={member.cantonCardId || ''}
+                    onChange={(e) => handleChange('cantonCardId', e.target.value)}
+                    error={errors.cantonCardId}
                     required
                   />
                 </Stack>
@@ -328,17 +331,21 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                         label="Position"
                         placeholder="Position"
                         data={[
-                          { value: 'Advisor', label: 'Advisor' },
-                          { value: 'President', label: 'President' },
-                          { value: 'Vice President', label: 'Vice President' },
-                          { value: 'Secretary', label: 'Secretary' },
-                          { value: 'Treasurer', label: 'Treasurer' },
-                          { value: 'Senator', label: 'Senator' },
-                          { value: 'Member', label: 'Member' },
-                          { value: 'Honor Roll', label: 'Honor Roll' },
-                          { value: 'Auxillary', label: 'Auxillary' }
+                          { value: 'ADVISOR', label: 'Advisor' },
+                          { value: 'PRESIDENT', label: 'President' },
+                          { value: 'VICE_PRESIDENT', label: 'Vice President' },
+                          { value: 'SECRETARY', label: 'Secretary' },
+                          { value: 'TREASURER', label: 'Treasurer' },
+                          { value: 'SENATOR', label: 'Senator' },
+                          { value: 'MEMBER', label: 'Member' },
+                          { value: 'PROBATIONARY_MEMBER', label: 'Probationary Member' },
+                          { value: 'LIEUTENANT', label: 'Lieutenant' },
+                          { value: 'CAPTAIN', label: 'Captain' },
+                          { value: 'ALUMNI', label: 'Alumni' },
+                          { value: 'HONOR_ROLL', label: 'Honor Roll' },
+                          { value: 'AUXILIARY', label: 'Auxiliary' }
                         ]}
-                        value={member.position || 'Member'}
+                        value={member.position || 'MEMBER'}
                         onChange={(value) => handleChange('position', value)}
                         required
                       />
@@ -348,11 +355,12 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                         label="Medical Level"
                         placeholder="Medical Level"
                         data={[
+                          { value: 'EMR', label: 'EMR' },
                           { value: 'EMT', label: 'EMT' },
-                          { value: 'First Responder', label: 'First Responder' }
+                          { value: 'AEMT', label: 'AEMT' }
                         ]}
-                        value={member.medical_level || ''}
-                        onChange={(value) => handleChange('medical_level', value)}
+                        value={member.medicalLevel || ''}
+                        onChange={(value) => handleChange('medicalLevel', value)}
                         clearable
                       />
                     </Grid.Col>
@@ -362,11 +370,11 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                     label="Membership Standing"
                     placeholder="Membership Standing"
                     data={[
-                      { value: 'Good', label: 'Good Standing' },
-                      { value: 'Bad', label: 'Bad Standing' }
+                      { value: 'GOOD', label: 'Good Standing' },
+                      { value: 'BAD', label: 'Bad Standing' }
                     ]}
-                    value={member.membership_standing || 'Good'}
-                    onChange={(value) => handleChange('membership_standing', value)}
+                    value={member.membershipStanding || 'GOOD'}
+                    onChange={(value) => handleChange('membershipStanding', value)}
                     required
                   />
 
@@ -374,16 +382,16 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                     label="Shirt Size"
                     placeholder="Shirt Size"
                     data={[
-                      { value: 'xs', label: 'XS' },
-                      { value: 's', label: 'S' },
-                      { value: 'm', label: 'M' },
-                      { value: 'l', label: 'L' },
-                      { value: 'xl', label: 'XL' },
-                      { value: 'xxl', label: '2XL' },
-                      { value: 'xxxl', label: '3XL' }
+                      { value: 'XS', label: 'XS' },
+                      { value: 'S', label: 'S' },
+                      { value: 'M', label: 'M' },
+                      { value: 'L', label: 'L' },
+                      { value: 'XL', label: 'XL' },
+                      { value: 'XXL', label: '2XL' },
+                      { value: 'XXXL', label: '3XL' }
                     ]}
-                    value={member.shirt_size || ''}
-                    onChange={(value) => handleChange('shirt_size', value)}
+                    value={member.shirtSize || ''}
+                    onChange={(value) => handleChange('shirtSize', value)}
                     clearable
                   />
                 </Stack>
@@ -398,15 +406,16 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                     label="Housing Type"
                     placeholder="Housing Type"
                     data={[
-                      { value: 'On Campus', label: 'On Campus' },
-                      { value: 'Off Campus', label: 'Off Campus' }
+                      { value: 'ON_CAMPUS', label: 'On Campus' },
+                      { value: 'OFF_CAMPUS', label: 'Off Campus' },
+                      { value: 'COMMUTER', label: 'Commuter' }
                     ]}
-                    value={member.housing_type || 'On Campus'}
-                    onChange={(value) => handleChange('housing_type', value)}
+                    value={member.housingType || 'ON_CAMPUS'}
+                    onChange={(value) => handleChange('housingType', value)}
                     required
                   />
 
-                  {member.housing_type !== 'Off Campus' && (
+                  {member.housingType !== 'OFF_CAMPUS' && member.housingType !== 'COMMUTER' && (
                     <Grid>
                       <Grid.Col span={{ base: 12, md: 6 }}>
                         <TextInput
@@ -420,28 +429,27 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                         <NumberInput
                           label="Room Number"
                           placeholder="Room Number"
-                          value={member.room_number || 0}
-                          onChange={(value) => handleChange('room_number', value)}
-                          required
+                          value={member.roomNumber || undefined}
+                          onChange={(value) => handleChange('roomNumber', value)}
                         />
                       </Grid.Col>
                     </Grid>
                   )}
 
-                  {member.housing_type === 'Off Campus' && (
+                  {member.housingType === 'OFF_CAMPUS' && (
                     <TextInput
                       label="Local Address"
                       placeholder="Local Address"
-                      value={member.local_address || ''}
-                      onChange={(e) => handleChange('local_address', e.target.value)}
+                      value={member.localAddress || ''}
+                      onChange={(e) => handleChange('localAddress', e.target.value)}
                     />
                   )}
 
                   <TextInput
                     label="Home Address"
                     placeholder="Home Address"
-                    value={member.home_address || ''}
-                    onChange={(e) => handleChange('home_address', e.target.value)}
+                    value={member.homeAddress || ''}
+                    onChange={(e) => handleChange('homeAddress', e.target.value)}
                   />
                 </Stack>
               </Accordion.Panel>

@@ -160,7 +160,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
         const membersList = await getAllMembers();
         setMembers(membersList.map((member: Member) => ({
           value: member.id,
-          label: `${member.first_name} ${member.last_name}`
+          label: `${member.firstName} ${member.lastName}`
         })));
       } catch (error) {
         console.error('Error loading members:', error);

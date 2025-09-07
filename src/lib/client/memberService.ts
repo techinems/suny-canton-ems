@@ -1,41 +1,44 @@
 'use client';
-import { pb } from './pocketbase';
 
-// Define the Member interface based on the PocketBase schema
+// Define the Member interface based on the Prisma User model
 export interface Member {
   id: string;
   email: string;
-  emailVisibility: boolean;
-  first_name: string;
-  last_name: string;
-  preferred_name?: string;
-  avatar?: string | File;
-  shirt_size?: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'xxxl';
-  dob: string;
-  canton_email?: string;
-  position: 'Advisor' | 'President' | 'Vice President' | 'Secretary' | 'Treasurer' | 'Senator' | 'Member' | 'Honor Roll' | 'Auxillary';
-  major?: string;
-  membership_standing: 'Good' | 'Bad';
-  canton_card_id: string;
+  firstName: string | null;
+  lastName: string | null;
+  preferredName: string | null;
+  avatar: string | null;
+  shirtSize: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'XXXL' | null;
+  dob: Date;
+  cantonEmail: string | null;
+  position: 'MEMBER' | 'PROBATIONARY_MEMBER' | 'LIEUTENANT' | 'CAPTAIN' | 'TREASURER' | 'SECRETARY' | 'VICE_PRESIDENT' | 'PRESIDENT' | 'ALUMNI' | 'ADVISOR' | 'SENATOR' | 'HONOR_ROLL' | 'AUXILIARY';
+  major: string | null;
+  membershipStanding: 'GOOD' | 'BAD';
+  cantonCardId: string;
   gpa: number;
-  phone_number?: string;
-  medical_level?: 'EMT' | 'First Responder';
-  housing_type: 'On Campus' | 'Off Campus';
-  building?: string;
-  room_number: number;
-  home_address?: string;
-  local_address?: string;
-  created: string;
-  updated: string;
+  phoneNumber: string | null;
+  medicalLevel: 'EMR' | 'EMT' | 'AEMT' | null;
+  housingType: 'ON_CAMPUS' | 'OFF_CAMPUS' | 'COMMUTER';
+  building: string | null;
+  roomNumber: number | null;
+  homeAddress: string | null;
+  localAddress: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  emailVerified: boolean;
+  image: string | null;
+  name: string | null;
 }
 
 // Function to get all members
 export const getAllMembers = async (): Promise<Member[]> => {
   try {
-    const records = await pb.collection('users').getFullList({
-      sort: 'last_name,first_name',
-    });
-    return records as unknown as Member[];
+    const response = await fetch('/api/members');
+    if (!response.ok) {
+      throw new Error('Failed to fetch members');
+    }
+    const members = await response.json();
+    return members;
   } catch (error) {
     console.error('Error fetching members:', error);
     return [];
@@ -45,8 +48,12 @@ export const getAllMembers = async (): Promise<Member[]> => {
 // Function to get a member by ID
 export const getMemberById = async (id: string): Promise<Member | null> => {
   try {
-    const record = await pb.collection<Member>('users').getOne(id);
-    return record;
+    const response = await fetch(`/api/members/${id}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch member with ID ${id}`);
+    }
+    const member = await response.json();
+    return member;
   } catch (error) {
     console.error(`Error fetching member with ID ${id}:`, error);
     return null;
@@ -56,8 +63,20 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
 // Function to create a new member
 export const createMember = async (memberData: Partial<Member>): Promise<Member | null> => {
   try {
-    const record = await pb.collection<Member>('users').create(memberData);
-    return record;
+    const response = await fetch('/api/members', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(memberData),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create member');
+    }
+    
+    const member = await response.json();
+    return member;
   } catch (error) {
     console.error('Error creating member:', error);
     return null;
@@ -67,8 +86,20 @@ export const createMember = async (memberData: Partial<Member>): Promise<Member 
 // Function to update a member
 export const updateMember = async (id: string, memberData: Partial<Member>): Promise<Member | null> => {
   try {
-    const record = await pb.collection('users').update(id, memberData);
-    return record as unknown as Member;
+    const response = await fetch(`/api/members/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(memberData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to update member with ID ${id}`);
+    }
+    
+    const member = await response.json();
+    return member;
   } catch (error) {
     console.error(`Error updating member with ID ${id}:`, error);
     return null;
@@ -78,7 +109,14 @@ export const updateMember = async (id: string, memberData: Partial<Member>): Pro
 // Function to delete a member
 export const deleteMember = async (id: string): Promise<boolean> => {
   try {
-    await pb.collection('users').delete(id);
+    const response = await fetch(`/api/members/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete member with ID ${id}`);
+    }
+    
     return true;
   } catch (error) {
     console.error(`Error deleting member with ID ${id}:`, error);
@@ -88,21 +126,14 @@ export const deleteMember = async (id: string): Promise<boolean> => {
 
 // Function to get the full name of a member
 export const getFullName = (member: Member): string => {
-  if (member.preferred_name) {
-    return `${member.preferred_name} ${member.last_name}`;
+  if (member.preferredName) {
+    return `${member.preferredName} ${member.lastName}`;
   }
-  return `${member.first_name} ${member.last_name}`;
+  return `${member.firstName} ${member.lastName}`;
 };
 
 // Function to get avatar URL
 export const getMemberAvatarUrl = (member: Member): string => {
-  // If it's a file send back a data url
-  if (member.avatar && typeof member.avatar !== 'string') {
-    return URL.createObjectURL(member.avatar);
-  }
-  // Use PocketBase's built-in file URL method if it's a string reference
-  if (member.avatar) {
-    return pb.files.getURL(member, member.avatar);
-  }
-  return ''; // Return empty string or a default avatar URL
+  // Return the avatar URL if it exists, otherwise return empty string
+  return member.avatar || member.image || '';
 };

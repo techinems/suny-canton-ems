@@ -18,26 +18,50 @@ interface MemberDetailProps {
 
 export function MemberDetail({ member }: MemberDetailProps) {
   // Helper function to format date to a readable format
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   // Get position badge color
   const getPositionColor = (position: string): string => {
     const colorMap: Record<string, string> = {
-      'Advisor': 'blue',
-      'President': 'violet',
-      'Vice President': 'indigo',
-      'Secretary': 'teal',
-      'Treasurer': 'cyan',
-      'Senator': 'green',
-      'Member': 'gray',
-      'Honor Roll': 'yellow',
-      'Auxillary': 'orange'
+      'ADVISOR': 'blue',
+      'PRESIDENT': 'violet',
+      'VICE_PRESIDENT': 'indigo',
+      'SECRETARY': 'teal',
+      'TREASURER': 'cyan',
+      'SENATOR': 'green',
+      'MEMBER': 'gray',
+      'PROBATIONARY_MEMBER': 'yellow',
+      'LIEUTENANT': 'orange',
+      'CAPTAIN': 'red',
+      'ALUMNI': 'gray',
+      'HONOR_ROLL': 'yellow',
+      'AUXILIARY': 'orange'
     };
     
     return colorMap[position] || 'gray';
+  };
+
+  // Format position display name
+  const formatPosition = (position: string): string => {
+    const positionMap: Record<string, string> = {
+      'MEMBER': 'Member',
+      'PROBATIONARY_MEMBER': 'Probationary Member',
+      'LIEUTENANT': 'Lieutenant',
+      'CAPTAIN': 'Captain',
+      'TREASURER': 'Treasurer',
+      'SECRETARY': 'Secretary',
+      'VICE_PRESIDENT': 'Vice President',
+      'PRESIDENT': 'President',
+      'ALUMNI': 'Alumni',
+      'ADVISOR': 'Advisor',
+      'SENATOR': 'Senator',
+      'HONOR_ROLL': 'Honor Roll',
+      'AUXILIARY': 'Auxiliary'
+    };
+    
+    return positionMap[position] || position;
   };
 
   return (
@@ -56,15 +80,15 @@ export function MemberDetail({ member }: MemberDetailProps) {
             </Text>
             <Group gap="xs">
               <Badge color={getPositionColor(member.position)}>
-                {member.position}
+                {formatPosition(member.position)}
               </Badge>
               <Badge 
-                color={member.membership_standing === 'Good' ? 'green' : 'red'}
+                color={member.membershipStanding === 'GOOD' ? 'green' : 'red'}
               >
-                {member.membership_standing} Standing
+                {member.membershipStanding === 'GOOD' ? 'Good' : 'Bad'} Standing
               </Badge>
-              {member.medical_level && (
-                <Badge color="blue">{member.medical_level}</Badge>
+              {member.medicalLevel && (
+                <Badge color="blue">{member.medicalLevel}</Badge>
               )}
             </Group>
           </Box>
@@ -77,16 +101,16 @@ export function MemberDetail({ member }: MemberDetailProps) {
             <Text fw={500}>Email:</Text>
             <Text>{member.email}</Text>
           </Grid.Col>
-          {member.canton_email && (
+          {member.cantonEmail && (
             <Grid.Col span={{ base: 12, md: 6 }}>
               <Text fw={500}>Canton Email:</Text>
-              <Text>{member.canton_email}</Text>
+              <Text>{member.cantonEmail}</Text>
             </Grid.Col>
           )}
-          {member.phone_number && (
+          {member.phoneNumber && (
             <Grid.Col span={{ base: 12, md: 6 }}>
               <Text fw={500}>Phone:</Text>
-              <Text>{member.phone_number}</Text>
+              <Text>{member.phoneNumber}</Text>
             </Grid.Col>
           )}
           <Grid.Col span={{ base: 12, md: 6 }}>
@@ -110,7 +134,7 @@ export function MemberDetail({ member }: MemberDetailProps) {
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 6 }}>
             <Text fw={500}>Canton Card ID:</Text>
-            <Text>{member.canton_card_id}</Text>
+            <Text>{member.cantonCardId}</Text>
           </Grid.Col>
         </Grid>
 
@@ -119,10 +143,10 @@ export function MemberDetail({ member }: MemberDetailProps) {
         <Grid>
           <Grid.Col span={{ base: 12, md: 6 }}>
             <Text fw={500}>Housing Type:</Text>
-            <Text>{member.housing_type}</Text>
+            <Text>{member.housingType === 'ON_CAMPUS' ? 'On Campus' : member.housingType === 'OFF_CAMPUS' ? 'Off Campus' : 'Commuter'}</Text>
           </Grid.Col>
           
-          {member.housing_type === 'On Campus' && (
+          {member.housingType === 'ON_CAMPUS' && (
             <>
               {member.building && (
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -132,33 +156,33 @@ export function MemberDetail({ member }: MemberDetailProps) {
               )}
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <Text fw={500}>Room Number:</Text>
-                <Text>{member.room_number}</Text>
+                <Text>{member.roomNumber}</Text>
               </Grid.Col>
             </>
           )}
           
-          {member.local_address && (
+          {member.localAddress && (
             <Grid.Col span={12}>
               <Text fw={500}>Local Address:</Text>
-              <Text>{member.local_address}</Text>
+              <Text>{member.localAddress}</Text>
             </Grid.Col>
           )}
           
-          {member.home_address && (
+          {member.homeAddress && (
             <Grid.Col span={12}>
               <Text fw={500}>Home Address:</Text>
-              <Text>{member.home_address}</Text>
+              <Text>{member.homeAddress}</Text>
             </Grid.Col>
           )}
         </Grid>
 
-        {member.shirt_size && (
+        {member.shirtSize && (
           <>
             <Divider label="Additional Information" labelPosition="center" />
             <Grid>
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <Text fw={500}>Shirt Size:</Text>
-                <Text>{member.shirt_size.toUpperCase()}</Text>
+                <Text>{member.shirtSize}</Text>
               </Grid.Col>
             </Grid>
           </>

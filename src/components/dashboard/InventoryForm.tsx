@@ -20,20 +20,20 @@ export function InventoryForm({ inventoryId, isEditing = false }: InventoryFormP
 
   const form = useForm({
     initialValues: {
-      item_name: '',
+      itemName: '',
       manufacturer: '',
       description: '',
       quantity: isEditing ? 0 : 1,
       size: '',
-      manufacturing_date: null as Date | null,
-      purchase_date: null as Date | null,
+      manufacturingDate: null as Date | null,
+      purchaseDate: null as Date | null,
       price: null as number | null,
-      paid_by: '',
+      paidBy: '',
       disposable: false,
-      expiration_date: null as Date | null,
+      expirationDate: null as Date | null,
     },
     validate: {
-      item_name: (value) => value.trim().length === 0 ? 'Item name is required' : null,
+      itemName: (value) => value.trim().length === 0 ? 'Item name is required' : null,
       quantity: (value) => value < 0 ? 'Quantity must be zero or positive' : null,
       price: (value) => value !== null && value < 0 ? 'Price cannot be negative' : null,
     }
@@ -49,10 +49,17 @@ export function InventoryForm({ inventoryId, isEditing = false }: InventoryFormP
         
         // Parse dates from strings to Date objects for form
         form.setValues({
-          ...loadedItem,
-          manufacturing_date: loadedItem.manufacturing_date ? new Date(loadedItem.manufacturing_date) : null,
-          purchase_date: loadedItem.purchase_date ? new Date(loadedItem.purchase_date) : null,
-          expiration_date: loadedItem.expiration_date ? new Date(loadedItem.expiration_date) : null,
+          itemName: loadedItem.itemName || '',
+          manufacturer: loadedItem.manufacturer || '',
+          description: loadedItem.description || '',
+          quantity: loadedItem.quantity,
+          size: loadedItem.size || '',
+          manufacturingDate: loadedItem.manufacturingDate ? new Date(loadedItem.manufacturingDate) : null,
+          purchaseDate: loadedItem.purchaseDate ? new Date(loadedItem.purchaseDate) : null,
+          price: loadedItem.price,
+          paidBy: loadedItem.paidBy || '',
+          disposable: loadedItem.disposable || false,
+          expirationDate: loadedItem.expirationDate ? new Date(loadedItem.expirationDate) : null,
         });
         
         setError(null);
@@ -70,13 +77,19 @@ export function InventoryForm({ inventoryId, isEditing = false }: InventoryFormP
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
-      // Convert dates to ISO strings for PocketBase if they exist
+      // Convert dates to Date objects for the API
       const itemData = {
-        ...values,
-        manufacturing_date: values.manufacturing_date?.toISOString().split('T')[0] || undefined,
-        purchase_date: values.purchase_date?.toISOString().split('T')[0] || undefined,
-        expiration_date: values.expiration_date?.toISOString().split('T')[0] || undefined,
-        price: values.price ?? undefined
+        itemName: values.itemName,
+        manufacturer: values.manufacturer || null,
+        description: values.description || null,
+        quantity: values.quantity,
+        size: values.size || null,
+        manufacturingDate: values.manufacturingDate,
+        purchaseDate: values.purchaseDate,
+        price: values.price,
+        paidBy: values.paidBy || null,
+        disposable: values.disposable,
+        expirationDate: values.expirationDate,
       };
 
       if (isEditing && inventoryId) {
@@ -122,7 +135,7 @@ export function InventoryForm({ inventoryId, isEditing = false }: InventoryFormP
               label="Item Name"
               placeholder="Enter item name"
               required
-              {...form.getInputProps('item_name')}
+              {...form.getInputProps('itemName')}
             />
             
             <Group grow>
@@ -170,14 +183,14 @@ export function InventoryForm({ inventoryId, isEditing = false }: InventoryFormP
                 label="Manufacturing Date"
                 placeholder="Select date"
                 clearable
-                {...form.getInputProps('manufacturing_date')}
+                {...form.getInputProps('manufacturingDate')}
               />
               
               <DateInput
                 label="Purchase Date"
                 placeholder="Select date"
                 clearable
-                {...form.getInputProps('purchase_date')}
+                {...form.getInputProps('purchaseDate')}
               />
             </Group>
             
@@ -186,13 +199,13 @@ export function InventoryForm({ inventoryId, isEditing = false }: InventoryFormP
                 label="Expiration Date"
                 placeholder="Select date if applicable"
                 clearable
-                {...form.getInputProps('expiration_date')}
+                {...form.getInputProps('expirationDate')}
               />
               
               <TextInput
                 label="Paid By"
                 placeholder="Department, grant name, etc."
-                {...form.getInputProps('paid_by')}
+                {...form.getInputProps('paidBy')}
               />
             </Group>
             

@@ -25,7 +25,7 @@ export default function EditInventoryItemPage() {
     const fetchItemName = async () => {
       const item = await getInventoryItem(id);
       if (item) {
-        setItemName(item.item_name);
+        setItemName(item.itemName || 'Unknown Item');
       }
       setLoading(false);
     };
