@@ -26,7 +26,7 @@ model User {
   medicalLevel       MedicalLevel?      @map("medical_level")
   housingType        HousingType        @map("housing_type")
   building           String?
-  roomNumber         Int                @map("room_number")
+  roomNumber         Int?               @map("room_number")
   homeAddress        String?            @map("home_address")
   localAddress       String?            @map("local_address")
   createdAt          DateTime           @default(now()) @map("created_at")
@@ -154,15 +154,19 @@ enum ShirtSize {
 }
 
 enum Position {
-  ADVISOR        @map("Advisor")
-  PRESIDENT      @map("President")
-  VICE_PRESIDENT @map("Vice President")
-  SECRETARY      @map("Secretary")
-  TREASURER      @map("Treasurer")
-  SENATOR        @map("Senator")
-  MEMBER         @map("Member")
-  HONOR_ROLL     @map("Honor Roll")
-  AUXILIARY      @map("Auxillary")
+  MEMBER             @map("Member")
+  PROBATIONARY_MEMBER @map("Probationary Member") 
+  LIEUTENANT         @map("Lieutenant")
+  CAPTAIN            @map("Captain")
+  TREASURER          @map("Treasurer")
+  SECRETARY          @map("Secretary")
+  VICE_PRESIDENT     @map("Vice President")
+  PRESIDENT          @map("President")
+  ALUMNI             @map("Alumni")
+  ADVISOR            @map("Advisor")
+  SENATOR            @map("Senator")
+  HONOR_ROLL         @map("Honor Roll")
+  AUXILIARY          @map("Auxiliary")
 }
 
 enum MembershipStanding {
@@ -171,13 +175,15 @@ enum MembershipStanding {
 }
 
 enum MedicalLevel {
-  EMT             @map("EMT")
-  FIRST_RESPONDER @map("First Responder")
+  EMR  @map("EMR")
+  EMT  @map("EMT")
+  AEMT @map("AEMT")
 }
 
 enum HousingType {
   ON_CAMPUS  @map("On Campus")
   OFF_CAMPUS @map("Off Campus")
+  COMMUTER   @map("Commuter")
 }
 
 enum LevelOfCare {

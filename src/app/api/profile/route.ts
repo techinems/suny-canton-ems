@@ -34,6 +34,11 @@ export async function POST(request: NextRequest) {
       dob,
     } = body;
 
+    // Validate required fields
+    if (!dob) {
+      return NextResponse.json({ error: 'Date of birth is required' }, { status: 400 });
+    }
+
     // Update the user with additional profile information
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -41,6 +46,7 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         preferredName: preferredName || null,
+        dob: new Date(dob),
         cantonEmail: cantonEmail || null,
         position: position || 'MEMBER',
         major: major || null,
@@ -54,7 +60,6 @@ export async function POST(request: NextRequest) {
         homeAddress: homeAddress || null,
         localAddress: localAddress || null,
         shirtSize: shirtSize || null,
-        dob: dob ? new Date(dob) : null,
       },
     });
 

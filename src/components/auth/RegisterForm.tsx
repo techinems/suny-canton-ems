@@ -11,6 +11,7 @@ import {
   NumberInput,
   Textarea
 } from '@mantine/core';
+import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconMail, IconLock, IconUser, IconPhone, IconHome } from '@tabler/icons-react';
 import { useAuth } from './AuthContext';
@@ -22,6 +23,7 @@ interface RegisterFormValues {
   firstName: string;
   lastName: string;
   preferredName: string;
+  dob: Date | null;
   cantonEmail: string;
   position: string;
   major: string;
@@ -91,6 +93,7 @@ export function RegisterForm() {
       firstName: '',
       lastName: '',
       preferredName: '',
+      dob: null as Date | null,
       cantonEmail: '',
       position: 'MEMBER',
       major: '',
@@ -112,6 +115,7 @@ export function RegisterForm() {
         value !== values.password ? 'Passwords do not match' : null,
       firstName: (value) => (value.length > 0 ? null : 'First name is required'),
       lastName: (value) => (value.length > 0 ? null : 'Last name is required'),
+      dob: (value) => (value ? null : 'Date of birth is required'),
       cantonCardId: (value) => (value.length > 0 ? null : 'Canton Card ID is required'),
       gpa: (value) => (value >= 0 && value <= 4.0 ? null : 'GPA must be between 0.0 and 4.0'),
     },
@@ -125,44 +129,26 @@ export function RegisterForm() {
       // Create the display name from first and last name
       const displayName = `${values.firstName} ${values.lastName}`;
       
-      // First, register the user with Better Auth
-      await register(values.email, values.password, displayName);
-      
-      // Then, update their profile with additional information
-      try {
-        const response = await fetch('/api/profile', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            firstName: values.firstName,
-            lastName: values.lastName,
-            preferredName: values.preferredName || null,
-            cantonEmail: values.cantonEmail || null,
-            position: values.position,
-            major: values.major || null,
-            cantonCardId: values.cantonCardId,
-            gpa: values.gpa || null,
-            phoneNumber: values.phoneNumber || null,
-            medicalLevel: values.medicalLevel || null,
-            housingType: values.housingType,
-            building: values.building || null,
-            roomNumber: values.roomNumber || null,
-            homeAddress: values.homeAddress || null,
-            localAddress: values.localAddress || null,
-            shirtSize: values.shirtSize,
-          }),
-        });
-
-        if (!response.ok) {
-          console.error('Failed to update profile information');
-          // Don't throw error here as the user is already registered
-        }
-      } catch (profileError) {
-        console.error('Error updating profile:', profileError);
-        // Don't throw error here as the user is already registered
-      }
+      // Register the user with Better Auth including all additional fields
+      await register(values.email, values.password, displayName, {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        preferredName: values.preferredName || undefined,
+        dob: values.dob ? new Date(values.dob) : undefined,
+        cantonEmail: values.cantonEmail || undefined,
+        position: values.position,
+        major: values.major || undefined,
+        cantonCardId: values.cantonCardId,
+        gpa: values.gpa || undefined,
+        phoneNumber: values.phoneNumber || undefined,
+        medicalLevel: values.medicalLevel || undefined,
+        housingType: values.housingType,
+        building: values.building || undefined,
+        roomNumber: values.roomNumber || undefined,
+        homeAddress: values.homeAddress || undefined,
+        localAddress: values.localAddress || undefined,
+        shirtSize: values.shirtSize,
+      });
       
     } catch (err: unknown) {
       let errorMessage: string;
@@ -251,6 +237,16 @@ export function RegisterForm() {
             size="md"
             radius="md"
             {...form.getInputProps('preferredName')}
+          />
+
+          <DateInput
+            label="Date of Birth"
+            placeholder="Select your date of birth"
+            required
+            size="md"
+            radius="md"
+            maxDate={new Date()}
+            {...form.getInputProps('dob')}
           />
 
           <TextInput

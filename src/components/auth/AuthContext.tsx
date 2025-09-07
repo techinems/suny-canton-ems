@@ -13,12 +13,32 @@ interface User {
   updatedAt: Date;
 }
 
+interface AdditionalUserData {
+  firstName?: string;
+  lastName?: string;
+  preferredName?: string;
+  dob?: Date;
+  cantonEmail?: string;
+  position?: string;
+  major?: string;
+  cantonCardId?: string;
+  gpa?: number;
+  phoneNumber?: string;
+  medicalLevel?: string;
+  housingType?: string;
+  building?: string;
+  roomNumber?: number;
+  homeAddress?: string;
+  localAddress?: string;
+  shirtSize?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  register: (email: string, password: string, name?: string, additionalData?: AdditionalUserData) => Promise<void>;
   error: string | null;
 }
 
@@ -69,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [router]);
 
-  const register = useCallback(async (email: string, password: string, name?: string) => {
+  const register = useCallback(async (email: string, password: string, name?: string, additionalData?: AdditionalUserData) => {
     try {
       setError(null);
       
@@ -77,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         name: name || '',
+        ...additionalData,
       });
       
       if (result.error) {
