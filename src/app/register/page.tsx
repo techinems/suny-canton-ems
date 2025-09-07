@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function RegisterPage() {
   return (
-    <Container size={420} my={40}>
+    <Container size="md" my={40}>
       <Title
         ta="center"
         fw={900}
@@ -24,7 +24,7 @@ export default function RegisterPage() {
         Create your account to access the EMS management system
       </Text>
 
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+      <Paper withBorder shadow="md" p={40} mt={30} radius="md" maw={800} mx="auto">
         <RegisterForm />
         
         <Center mt="md">
