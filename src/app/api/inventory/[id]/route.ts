@@ -3,12 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const inventoryItem = await prisma.inventory.findUnique({
       where: {
-        id: params.id,
+        id: id,
       },
     });
 
@@ -31,9 +32,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     
     const updateData: Partial<{
@@ -65,7 +67,7 @@ export async function PUT(
 
     const inventoryItem = await prisma.inventory.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: updateData,
     });
@@ -82,12 +84,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.inventory.delete({
       where: {
-        id: params.id,
+        id: id,
       },
     });
 

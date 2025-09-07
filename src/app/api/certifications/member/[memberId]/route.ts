@@ -3,12 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: Promise<{ memberId: string }> }
 ) {
   try {
+    const { memberId } = await params;
     const certifications = await prisma.certification.findMany({
       where: {
-        memberId: params.memberId,
+        memberId: memberId,
       },
       orderBy: {
         certExpiration: 'desc',

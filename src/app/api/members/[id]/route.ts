@@ -4,11 +4,12 @@ import { prisma } from '@/lib/prisma';
 // GET /api/members/[id] - Get a specific member
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const member = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: {
         id: true,
         email: true,
@@ -59,14 +60,15 @@ export async function GET(
 // PUT /api/members/[id] - Update a specific member
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     
     // Update the member
     const member = await prisma.user.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         email: body.email,
         firstName: body.firstName,
@@ -104,11 +106,12 @@ export async function PUT(
 // DELETE /api/members/[id] - Delete a specific member
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ success: true });

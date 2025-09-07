@@ -7,21 +7,19 @@ import { CertificationForm } from '@/components/dashboard/CertificationForm';
 import { getCertification } from '@/lib/client/certificationService';
 import { useParams } from 'next/navigation';
 
-interface FormattedCertification {
+interface CertificationFormValues {
   id: string;
-  cert_name: string;
-  cert_expiration?: Date;
-  cert_issue_date?: Date;
-  cert_number?: string;
-  issuing_authority?: string;
+  certName: string;
+  certExpiration?: Date;
+  certIssueDate?: Date;
+  certNumber?: string;
+  issuingAuthority?: string;
 }
-
-
 
 export default function EditCertificationPage() {
   const params = useParams();
   const id = params.id as string;
-  const [certification, setCertification] = useState<FormattedCertification | undefined>(undefined);
+  const [certification, setCertification] = useState<CertificationFormValues | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,14 +29,14 @@ export default function EditCertificationPage() {
         setLoading(true);
         const data = await getCertification(id);
 
-        // Convert string dates to Date objects
-        const formattedCert: FormattedCertification = {
+        // Format data to match form expectations (camelCase)
+        const formattedCert: CertificationFormValues = {
           id: data.id,
-          cert_name: data.cert_name,
-          cert_expiration: data.cert_expiration ? new Date(data.cert_expiration) : undefined,
-          cert_issue_date: data.cert_issue_date ? new Date(data.cert_issue_date) : undefined,
-          cert_number: data.cert_number,
-          issuing_authority: data.issuing_authority,
+          certName: data.certName,
+          certExpiration: data.certExpiration || undefined,
+          certIssueDate: data.certIssueDate || undefined,
+          certNumber: data.certNumber || undefined,
+          issuingAuthority: data.issuingAuthority || undefined,
         };
 
         setCertification(formattedCert);

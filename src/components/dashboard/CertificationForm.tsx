@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   TextInput, 
@@ -16,7 +16,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCalendar, IconUpload, IconAlertCircle } from '@tabler/icons-react';
-import { createCertification, updateCertification } from '@/lib/client/certificationService';
+import { createCertification, updateCertification, CreateCertificationData } from '@/lib/client/certificationService';
 
 interface CertificationFormProps {
   initialValues?: {
@@ -52,6 +52,21 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
     },
   });
 
+  // Update form values when initialValues change (for edit mode)
+  useEffect(() => {
+    if (initialValues) {
+      form.setValues({
+        certName: initialValues.certName || '',
+        certExpiration: initialValues.certExpiration || null,
+        certIssueDate: initialValues.certIssueDate || new Date(),
+        certNumber: initialValues.certNumber || '',
+        issuingAuthority: initialValues.issuingAuthority || '',
+        certScan: null,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues]);
+
   const handleSubmit = async (values: typeof form.values) => {
     try {
       setLoading(true);
@@ -62,20 +77,43 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
         return;
       }
       
+      // Convert file to base64 string if it's a File object
+      let certScanData = '';
+      if (values.certScan && values.certScan instanceof File) {
+        certScanData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(values.certScan as File);
+        });
+      }
+      
       // Create a typesafe certification object using the new interface
-      const certData = {
+      const certData: Partial<CreateCertificationData> = {
         certName: values.certName,
         certExpiration: values.certExpiration,
         certIssueDate: values.certIssueDate,
         certNumber: values.certNumber || null,
         issuingAuthority: values.issuingAuthority || null,
-        certScan: values.certScan || '',
-        memberId: '', // This should be set by the API based on the authenticated user
       };
+      
+      // Only include certScan if we have a new file
+      if (certScanData) {
+        certData.certScan = certScanData;
+      }
       
       // For new certifications
       if (!isEditing) {
-        await createCertification(certData);
+        if (!certScanData) {
+          setError('Certificate scan is required for new certifications');
+          setLoading(false);
+          return;
+        }
+        const newCertData: CreateCertificationData = {
+          ...certData,
+          certScan: certScanData,
+        } as CreateCertificationData;
+        await createCertification(newCertData);
       } 
       // For updates
       else if (initialValues?.id) {
@@ -159,8 +197,8 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
           
           <FileInput
             label="Upload Certificate Scan"
-            placeholder="Click to upload PDF"
-            accept="application/pdf"
+            placeholder="Click to upload certificate"
+            accept="application/pdf,image/*"
             leftSection={<IconUpload size="1rem" />}
             clearable
             required={!isEditing}

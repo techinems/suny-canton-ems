@@ -28,8 +28,8 @@ export interface Certification {
 
 export interface CreateCertificationData {
   certName: string;
-  memberId: string;
-  certScan: File | string;
+  memberId?: string;
+  certScan: string;
   certExpiration?: Date | null;
   certIssueDate?: Date | null; 
   certNumber?: string | null;

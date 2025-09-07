@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -21,12 +22,24 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get the current user from the session
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     
     const certification = await prisma.certification.create({
       data: {
         certName: body.certName,
-        memberId: body.memberId,
+        memberId: session.user.id, // Use the authenticated user's ID
         certScan: body.certScan,
         certExpiration: body.certExpiration ? new Date(body.certExpiration) : null,
         certIssueDate: body.certIssueDate ? new Date(body.certIssueDate) : null,
