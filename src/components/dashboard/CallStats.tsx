@@ -70,8 +70,9 @@ export function CallStats() {
           }
           
           // Count locations
-          if (call.location) {
-            locations[call.location] = (locations[call.location] || 0) + 1;
+          const locationName = call.building ? call.building.name : call.location;
+          if (locationName) {
+            locations[locationName] = (locations[locationName] || 0) + 1;
           }
         });
         

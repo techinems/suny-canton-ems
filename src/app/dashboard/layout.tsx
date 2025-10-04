@@ -11,7 +11,8 @@ import {
   IconUser, 
   IconPackage, 
   IconCertificate,
-  IconLogout
+  IconLogout,
+  IconBuildingCommunity
 } from '@tabler/icons-react';
 import { ColorSchemeToggle } from '@/components/themeToggle/themeToggle';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -30,6 +31,7 @@ export default function DashboardLayout({
     { label: 'Dashboard', href: '/dashboard', icon: <IconHome style={{ width: rem(20) }} /> },
     { label: 'Calls', href: '/dashboard/calls', icon: <IconAmbulance style={{ width: rem(20) }} /> },
     { label: 'Members', href: '/dashboard/members', icon: <IconUsers style={{ width: rem(20) }} /> },
+    { label: 'Buildings', href: '/dashboard/buildings', icon: <IconBuildingCommunity style={{ width: rem(20) }} /> },
     { label: 'Certifications', href: '/dashboard/certifications', icon: <IconCertificate style={{ width: rem(20) }} /> },
     { label: 'Inventory', href: '/dashboard/inventory', icon: <IconPackage style={{ width: rem(20) }} /> },
     { label: 'Profile', href: '/dashboard/profile', icon: <IconUser style={{ width: rem(20) }} /> },

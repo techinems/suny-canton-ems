@@ -19,7 +19,12 @@ export interface Member {
   phoneNumber: string | null;
   medicalLevel: 'EMR' | 'EMT' | 'AEMT' | null;
   housingType: 'ON_CAMPUS' | 'OFF_CAMPUS' | 'COMMUTER';
-  building: string | null;
+  buildingId: string | null;
+  building?: {
+    id: string;
+    name: string;
+    address: string;
+  } | null;
   roomNumber: number | null;
   homeAddress: string | null;
   localAddress: string | null;

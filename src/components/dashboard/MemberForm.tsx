@@ -17,6 +17,7 @@ import {
 import { DateInput } from '@mantine/dates';
 import { useRouter } from 'next/navigation';
 import { Member, getMemberById, createMember, updateMember, getMemberAvatarUrl } from '@/lib/client/memberService';
+import { getBuildings } from '@/lib/client/buildingService';
 import { isEmail } from '@/lib/utils';
 
 interface MemberFormProps {
@@ -42,6 +43,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
   const [avatar, setAvatar] = useState<File | null>(null);
   const [password, setPassword] = useState<string>('');
   const [passwordConfirm, setPasswordConfirm] = useState<string>('');
+  const [buildings, setBuildings] = useState<{ value: string; label: string }[]>([]);
   const router = useRouter();
 
   // Fetch existing member data if editing
@@ -58,6 +60,24 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
       fetchMember();
     }
   }, [memberId, isEditing]);
+
+  // Fetch buildings for dropdown
+  useEffect(() => {
+    const fetchBuildings = async () => {
+      try {
+        const buildingsList = await getBuildings();
+        setBuildings(
+          buildingsList.map((building) => ({
+            value: building.id,
+            label: building.name,
+          }))
+        );
+      } catch (error) {
+        console.error('Error fetching buildings:', error);
+      }
+    };
+    fetchBuildings();
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -418,11 +438,14 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                   {member.housingType !== 'OFF_CAMPUS' && member.housingType !== 'COMMUTER' && (
                     <Grid>
                       <Grid.Col span={{ base: 12, md: 6 }}>
-                        <TextInput
+                        <Select
                           label="Building"
-                          placeholder="Building"
-                          value={member.building || ''}
-                          onChange={(e) => handleChange('building', e.target.value)}
+                          placeholder="Select a building"
+                          data={buildings}
+                          value={member.buildingId || ''}
+                          onChange={(value) => handleChange('buildingId', value)}
+                          searchable
+                          clearable
                         />
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, md: 6 }}>

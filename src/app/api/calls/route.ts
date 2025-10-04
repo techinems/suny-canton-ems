@@ -8,6 +8,15 @@ export async function GET() {
       orderBy: {
         callReceived: 'desc',
       },
+      include: {
+        building: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json(callLogs);
@@ -32,6 +41,7 @@ export async function POST(request: NextRequest) {
         backInService: new Date(body.backInService),
         levelOfCare: body.levelOfCare as LevelOfCare,
         dispatchInfo: body.dispatchInfo,
+        buildingId: body.buildingId,
         location: body.location,
         jumpbagUsed: body.jumpbagUsed ?? false,
         type: body.type as CallType | undefined,

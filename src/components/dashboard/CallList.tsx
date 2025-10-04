@@ -20,12 +20,24 @@ const formatDateTime = (date: Date) => {
 // Helper function to determine call status badge color
 const getStatusColor = (status: string | null | undefined) => {
   switch(status) {
-    case 'Complete':
+    case 'COMPLETE':
       return 'green';
-    case 'Cancelled enroute':
+    case 'CANCELLED_ENROUTE':
       return 'orange';
     default:
       return 'blue';
+  }
+};
+
+// Helper function to format status for display
+const formatStatus = (status: string | null | undefined) => {
+  switch(status) {
+    case 'COMPLETE':
+      return 'Complete';
+    case 'CANCELLED_ENROUTE':
+      return 'Cancelled enroute';
+    default:
+      return 'In Progress';
   }
 };
 
@@ -92,7 +104,11 @@ export function CallList() {
     {
       key: 'location',
       title: 'Location',
-      render: (call) => <Text size="sm">{call.location}</Text>
+      render: (call) => (
+        <Text size="sm">
+          {call.building ? call.building.name : call.location || 'N/A'}
+        </Text>
+      )
     },
     {
       key: 'type',
@@ -109,7 +125,7 @@ export function CallList() {
       title: 'Status',
       render: (call) => (
         <Badge color={getStatusColor(call.status)}>
-          {call.status || 'In Progress'}
+          {formatStatus(call.status)}
         </Badge>
       )
     },

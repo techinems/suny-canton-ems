@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getCallLog, updateCallLog, createCallLog } from '@/lib/client/callService';
 import { getInventoryItems, getInventoryItem, InventoryItem } from '@/lib/client/inventoryService';
 import { getAllMembers, Member } from '@/lib/client/memberService';
+import { getBuildings } from '@/lib/client/buildingService';
 import { notifications } from '@mantine/notifications';
 import { IconDeviceFloppy } from '@tabler/icons-react';
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -22,6 +23,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [inventoryItems, setInventoryItems] = useState<{value: string, label: string}[]>([]);
   const [members, setMembers] = useState<{value: string, label: string}[]>([]);
+  const [buildings, setBuildings] = useState<{value: string, label: string}[]>([]);
   const [selectedItemsWithQuantities, setSelectedItemsWithQuantities] = useState<ItemWithQuantity[]>([]);
   const [inventoryItemsMap, setInventoryItemsMap] = useState<Record<string, InventoryItem>>({});
   // Track if we've already updated the form to prevent loops
@@ -35,20 +37,34 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
       callEnroute: new Date(),
       onScene: new Date(),
       backInService: new Date(),
-      levelOfCare: 'EMT' as 'EMT' | 'None',
+      levelOfCare: 'EMT' as 'EMT' | 'NONE',
       dispatchInfo: '',
+      buildingId: '',
       location: '',
       jumpbagUsed: false,
-      type: undefined as 'Standby' | undefined,
+      type: undefined as 'STANDBY' | undefined,
       itemsUsed: [] as string[],
       crew: [] as string[],
       comments: '',
-      status: undefined as 'Cancelled enroute' | 'Complete' | undefined,
+      status: undefined as 'CANCELLED_ENROUTE' | 'COMPLETE' | undefined,
       // We'll keep the original itemsUsed for compatibility, but use our ItemWithQuantity UI
       itemsWithQuantities: [] as ItemWithQuantity[],
     },
     validate: {
-      location: (value) => value.trim().length === 0 ? 'Location is required' : null,
+      buildingId: (value, values) => {
+        // Either buildingId or location must be provided
+        if (!value && !values.location) {
+          return 'Please select a building or enter a custom location';
+        }
+        return null;
+      },
+      location: (value, values) => {
+        // Either buildingId or location must be provided
+        if (!value && !values.buildingId) {
+          return 'Please select a building or enter a custom location';
+        }
+        return null;
+      },
       callReceived: (value) => {
         if (!value) return 'Call received time is required';
       },
@@ -89,7 +105,8 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
           backInService: new Date(loadedCall.backInService),
           levelOfCare: loadedCall.levelOfCare,
           dispatchInfo: loadedCall.dispatchInfo || '',
-          location: loadedCall.location,
+          buildingId: loadedCall.buildingId || '',
+          location: loadedCall.location || '',
           jumpbagUsed: loadedCall.jumpbagUsed || false,
           type: loadedCall.type || undefined,
           itemsUsed: loadedCall.itemsUsed || [],
@@ -166,10 +183,23 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
         console.error('Error loading members:', error);
       }
     }
+
+    async function loadBuildings() {
+      try {
+        const buildingsList = await getBuildings();
+        setBuildings(buildingsList.map((building) => ({
+          value: building.id,
+          label: building.name
+        })));
+      } catch (error) {
+        console.error('Error loading buildings:', error);
+      }
+    }
     
     loadCall();
     loadInventoryItems();
     loadMembers();
+    loadBuildings();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callId, isEditing]);
 
@@ -282,10 +312,18 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
       {(!loading || !isEditing) && (
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
+            <Select
+              label="Building"
+              placeholder="Select a campus building"
+              data={buildings}
+              searchable
+              clearable
+              {...form.getInputProps('buildingId')}
+            />
+
             <TextInput
-              label="Location"
-              placeholder="Enter call location"
-              required
+              label="Custom Location"
+              placeholder="Or enter a custom location (off-campus or non-building location)"
               {...form.getInputProps('location')}
             />
             
@@ -336,7 +374,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 required
                 data={[
                   { value: 'EMT', label: 'EMT' },
-                  { value: 'None', label: 'None' }
+                  { value: 'NONE', label: 'None' }
                 ]}
                 {...form.getInputProps('levelOfCare')}
               />
@@ -345,7 +383,7 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 label="Call Type"
                 placeholder="Select call type"
                 data={[
-                  { value: 'Standby', label: 'Standby' }
+                  { value: 'STANDBY', label: 'Standby' }
                 ]}
                 clearable
                 {...form.getInputProps('type')}
@@ -357,8 +395,8 @@ export function CallForm({ callId, isEditing = false }: CallFormProps) {
                 label="Status"
                 placeholder="Select call status"
                 data={[
-                  { value: 'Complete', label: 'Complete' },
-                  { value: 'Cancelled enroute', label: 'Cancelled enroute' }
+                  { value: 'COMPLETE', label: 'Complete' },
+                  { value: 'CANCELLED_ENROUTE', label: 'Cancelled enroute' }
                 ]}
                 clearable
                 {...form.getInputProps('status')}

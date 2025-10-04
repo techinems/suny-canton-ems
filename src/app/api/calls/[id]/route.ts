@@ -12,6 +12,15 @@ export async function GET(
       where: {
         id: id,
       },
+      include: {
+        building: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
+      },
     });
 
     if (!callLog) {
@@ -46,7 +55,8 @@ export async function PUT(
       backInService: Date;
       levelOfCare: LevelOfCare;
       dispatchInfo: string | null;
-      location: string;
+      buildingId: string | null;
+      location: string | null;
       jumpbagUsed: boolean | null;
       type: CallType | null;
       itemsUsed: string[];
@@ -62,7 +72,8 @@ export async function PUT(
     if (body.backInService) updateData.backInService = new Date(body.backInService);
     if (body.levelOfCare) updateData.levelOfCare = body.levelOfCare as LevelOfCare;
     if (body.dispatchInfo !== undefined) updateData.dispatchInfo = body.dispatchInfo;
-    if (body.location) updateData.location = body.location;
+    if (body.buildingId !== undefined) updateData.buildingId = body.buildingId;
+    if (body.location !== undefined) updateData.location = body.location;
     if (body.jumpbagUsed !== undefined) updateData.jumpbagUsed = body.jumpbagUsed;
     if (body.type !== undefined) updateData.type = body.type as CallType;
     if (body.itemsUsed !== undefined) updateData.itemsUsed = body.itemsUsed;

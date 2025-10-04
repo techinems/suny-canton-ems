@@ -23,12 +23,24 @@ const formatDateTime = (date: Date) => {
 // Helper function to determine call status badge color
 const getStatusColor = (status: string | null | undefined) => {
   switch(status) {
-    case 'Complete':
+    case 'COMPLETE':
       return 'green';
-    case 'Cancelled enroute':
+    case 'CANCELLED_ENROUTE':
       return 'orange';
     default:
       return 'blue';
+  }
+};
+
+// Helper function to format status for display
+const formatStatus = (status: string | null | undefined) => {
+  switch(status) {
+    case 'COMPLETE':
+      return 'Complete';
+    case 'CANCELLED_ENROUTE':
+      return 'Cancelled enroute';
+    default:
+      return 'In Progress';
   }
 };
 
@@ -92,12 +104,14 @@ export function RecentCalls({ limit = 5 }: { limit?: number }) {
                   <IconClock size="1rem" />
                   <Text size="sm" fw={500}>{formatDateTime(call.callReceived)}</Text>
                   <Badge color={getStatusColor(call.status)} size="sm">
-                    {call.status || 'In Progress'}
+                    {formatStatus(call.status)}
                   </Badge>
                 </Group>
                 <Group gap="xs">
                   <IconMapPin size="1rem" style={{ minWidth: '1rem' }} />
-                  <Text size="sm" truncate>{call.location}</Text>
+                  <Text size="sm" truncate>
+                    {call.building ? call.building.name : call.location || 'N/A'}
+                  </Text>
                 </Group>
               </Stack>
               <IconChevronRight size="1rem" opacity={0.5} />

@@ -152,7 +152,7 @@ export function MemberDetail({ member }: MemberDetailProps) {
               {member.building && (
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Text fw={500}>Building:</Text>
-                  <Text>{member.building}</Text>
+                  <Text>{member.building.name}</Text>
                 </Grid.Col>
               )}
               <Grid.Col span={{ base: 12, md: 6 }}>

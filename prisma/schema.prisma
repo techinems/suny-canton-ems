@@ -25,7 +25,8 @@ model User {
   phoneNumber        String?            @map("phone_number")
   medicalLevel       MedicalLevel?      @map("medical_level")
   housingType        HousingType        @map("housing_type")
-  building           String?
+  buildingId         String?            @map("building_id")
+  building           Building?          @relation(fields: [buildingId], references: [id])
   roomNumber         Int?               @map("room_number")
   homeAddress        String?            @map("home_address")
   localAddress       String?            @map("local_address")
@@ -83,7 +84,9 @@ model CallLog {
   backInService DateTime    @map("back_in_service")
   levelOfCare   LevelOfCare @map("level_of_care")
   dispatchInfo  String?     @map("dispatch_info")
-  location      String
+  buildingId    String?     @map("building_id")
+  building      Building?   @relation(fields: [buildingId], references: [id])
+  location      String? // Kept for backward compatibility and non-building locations
   jumpbagUsed   Boolean?    @map("jumpbag_used")
   type          CallType?
   itemsUsed     String[]    @map("items_used") // References to inventory items
@@ -204,6 +207,18 @@ enum ComplianceType {
   SEX_OFFENDER @map("Sex Offender")
   CONDUCT      @map("Conduct")
   GPA          @map("GPA")
+}
+
+model Building {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  address   String
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  users     User[]
+  callLogs  CallLog[]
+
+  @@map("buildings")
 }
 
 model Verification {

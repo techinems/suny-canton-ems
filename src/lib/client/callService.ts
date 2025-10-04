@@ -4,15 +4,21 @@ interface RawCallLog {
   callEnroute: string;
   onScene: string;
   backInService: string;
-  levelOfCare: 'EMT' | 'None';
+  levelOfCare: 'EMT' | 'NONE';
   dispatchInfo?: string | null;
-  location: string;
+  buildingId?: string | null;
+  building?: {
+    id: string;
+    name: string;
+    address: string;
+  } | null;
+  location?: string | null;
   jumpbagUsed: boolean | null;
-  type?: 'Standby' | null;
+  type?: 'STANDBY' | null;
   itemsUsed: string[];
   crew: string[];
   comments?: string | null;
-  status?: 'Cancelled enroute' | 'Complete' | null;
+  status?: 'CANCELLED_ENROUTE' | 'COMPLETE' | null;
   created: string;
   updated: string;
 }
@@ -23,15 +29,21 @@ export interface CallLog {
   callEnroute: Date;
   onScene: Date;
   backInService: Date;
-  levelOfCare: 'EMT' | 'None';
+  levelOfCare: 'EMT' | 'NONE';
   dispatchInfo?: string | null;
-  location: string;
+  buildingId?: string | null;
+  building?: {
+    id: string;
+    name: string;
+    address: string;
+  } | null;
+  location?: string | null;
   jumpbagUsed: boolean | null;
-  type?: 'Standby' | null;
+  type?: 'STANDBY' | null;
   itemsUsed: string[];
   crew: string[];
   comments?: string | null;
-  status?: 'Cancelled enroute' | 'Complete' | null;
+  status?: 'CANCELLED_ENROUTE' | 'COMPLETE' | null;
   created: Date;
   updated: Date;
 }
@@ -41,15 +53,16 @@ export interface CreateCallLogData {
   callEnroute: Date;
   onScene: Date;
   backInService: Date;
-  levelOfCare: 'EMT' | 'None';
+  levelOfCare: 'EMT' | 'NONE';
   dispatchInfo?: string | null;
-  location: string;
+  buildingId?: string | null;
+  location?: string | null;
   jumpbagUsed?: boolean | null;
-  type?: 'Standby' | null;
+  type?: 'STANDBY' | null;
   itemsUsed?: string[];
   crew?: string[];
   comments?: string | null;
-  status?: 'Cancelled enroute' | 'Complete' | null;
+  status?: 'CANCELLED_ENROUTE' | 'COMPLETE' | null;
 }
 
 // Fetch all call logs
