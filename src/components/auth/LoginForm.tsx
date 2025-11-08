@@ -14,6 +14,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconMail, IconLock } from '@tabler/icons-react';
+import Link from 'next/link';
 import { useAuth } from './AuthContext';
 
 export function LoginForm() {
@@ -98,7 +99,7 @@ export function LoginForm() {
               label="Remember me"
               {...form.getInputProps('rememberMe', { type: 'checkbox' })}
             />
-            <Anchor size="sm" href="#" onClick={(e) => e.preventDefault()}>
+            <Anchor size="sm" component={Link} href="/reset-password">
               Forgot password?
             </Anchor>
           </Group>

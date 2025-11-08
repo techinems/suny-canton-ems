@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 import { auth } from './lib/auth';
 
 // Define paths that don't require authentication
-const publicPaths = ['/login', '/register', '/public', '/api/auth'];
+const publicPaths = ['/login', '/register', '/public', '/api/auth', '/reset-password'];
 
 export async function proxy(request: NextRequest) {
   // Get the path from the request

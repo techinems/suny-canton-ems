@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
+import { isEmailConfigured, sendResetPasswordEmail } from "./server/email";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -9,6 +10,24 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // Set to true in production
+    sendResetPassword: async ({ user, token, url }) => {
+      if (process.env.NODE_ENV === "production") {
+        if (!isEmailConfigured()) {
+          throw new Error("Email service is not configured. Cannot send reset password email.");
+        }
+
+        await sendResetPasswordEmail(user.email, token, url);
+        return;
+      }
+
+      console.info(`[DEV] Password reset token for ${user.email}: ${token}`);
+      console.info(`[DEV] Password reset URL: ${url}`);
+    },
+    onPasswordReset: async ({ user }) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.info(`[DEV] Password reset completed for ${user.email}`);
+      }
+    },
   },
   user: {
     additionalFields: {
