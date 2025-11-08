@@ -24,7 +24,7 @@ export interface UpdateBuildingData {
  * Fetch all buildings
  */
 export async function getBuildings(): Promise<Building[]> {
-  const response = await fetch('/api/buildings');
+  const response = await fetch('/api/admin/buildings');
   
   if (!response.ok) {
     throw new Error('Failed to fetch buildings');
@@ -37,7 +37,7 @@ export async function getBuildings(): Promise<Building[]> {
  * Fetch a single building by ID
  */
 export async function getBuilding(id: string): Promise<Building | null> {
-  const response = await fetch(`/api/buildings/${id}`);
+  const response = await fetch(`/api/admin/buildings/${id}`);
   
   if (!response.ok) {
     if (response.status === 404) {
@@ -53,7 +53,7 @@ export async function getBuilding(id: string): Promise<Building | null> {
  * Create a new building
  */
 export async function createBuilding(data: CreateBuildingData): Promise<Building> {
-  const response = await fetch('/api/buildings', {
+  const response = await fetch('/api/admin/buildings', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export async function updateBuilding(
   id: string,
   data: UpdateBuildingData
 ): Promise<Building> {
-  const response = await fetch(`/api/buildings/${id}`, {
+  const response = await fetch(`/api/admin/buildings/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export async function updateBuilding(
  * Delete a building
  */
 export async function deleteBuilding(id: string): Promise<boolean> {
-  const response = await fetch(`/api/buildings/${id}`, {
+  const response = await fetch(`/api/admin/buildings/${id}`, {
     method: 'DELETE',
   });
   

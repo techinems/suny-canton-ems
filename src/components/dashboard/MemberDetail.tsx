@@ -91,6 +91,9 @@ export function MemberDetail({ member }: MemberDetailProps) {
               {member.medicalLevel && (
                 <Badge color="blue">{member.medicalLevel}</Badge>
               )}
+              {member.isAdmin && (
+                <Badge color="red">Admin</Badge>
+              )}
             </Group>
           </Box>
         </Group>

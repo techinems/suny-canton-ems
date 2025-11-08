@@ -32,6 +32,7 @@ model User {
   localAddress       String?            @map("local_address")
   createdAt          DateTime           @default(now()) @map("created_at")
   emailVerified      Boolean            @default(false) @map("email_verified")
+  isAdmin            Boolean            @default(false) @map("is_admin")
   image              String?
   name               String?
   updatedAt          DateTime           @updatedAt @map("updated_at")

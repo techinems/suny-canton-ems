@@ -62,6 +62,12 @@ export const auth = betterAuth({
         input: true,
         defaultValue: "MEMBER",
       },
+      isAdmin: {
+        type: "boolean",
+        required: false,
+        input: false,
+        defaultValue: false,
+      },
       major: {
         type: "string",
         required: false,

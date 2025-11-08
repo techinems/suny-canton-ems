@@ -11,20 +11,25 @@ import {
 import { IconUserPlus } from '@tabler/icons-react';
 import { MemberList } from '@/components/dashboard/MemberList';
 import Link from 'next/link';
+import { useAuth } from '@/components/auth/AuthContext';
 
 export default function MembersPage() {
+  const { user } = useAuth();
+
   return (
     <Container fluid>
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Title order={2}>Membership Roster</Title>
-          <Button 
-            component={Link} 
-            href="/dashboard/members/new" 
-            leftSection={<IconUserPlus size="1rem" />}
-          >
-            Add Member
-          </Button>
+          {user?.isAdmin && (
+            <Button 
+              component={Link} 
+              href="/dashboard/members/new" 
+              leftSection={<IconUserPlus size="1rem" />}
+            >
+              Add Member
+            </Button>
+          )}
         </Group>
         <Paper withBorder p="md" radius="md">
           <Text mb="md">

@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // GET a single building by ID
 export async function GET(
-  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -31,89 +30,6 @@ export async function GET(
     console.error('Error fetching building:', error);
     return NextResponse.json(
       { error: 'Failed to fetch building' },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT - Update a building
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const body = await request.json();
-    const { name, address } = body;
-
-    if (!name || !address) {
-      return NextResponse.json(
-        { error: 'Name and address are required' },
-        { status: 400 }
-      );
-    }
-
-    const building = await prisma.building.update({
-      where: { id: params.id },
-      data: {
-        name,
-        address,
-      },
-    });
-
-    return NextResponse.json(building);
-  } catch (error) {
-    console.error('Error updating building:', error);
-    return NextResponse.json(
-      { error: 'Failed to update building' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE a building
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // Check if building is being used
-    const building = await prisma.building.findUnique({
-      where: { id: params.id },
-      include: {
-        _count: {
-          select: {
-            users: true,
-            callLogs: true,
-          },
-        },
-      },
-    });
-
-    if (!building) {
-      return NextResponse.json(
-        { error: 'Building not found' },
-        { status: 404 }
-      );
-    }
-
-    if (building._count.users > 0 || building._count.callLogs > 0) {
-      return NextResponse.json(
-        { 
-          error: `Cannot delete building. It is being used by ${building._count.users} member(s) and ${building._count.callLogs} call log(s).`,
-        },
-        { status: 400 }
-      );
-    }
-
-    await prisma.building.delete({
-      where: { id: params.id },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting building:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete building' },
       { status: 500 }
     );
   }

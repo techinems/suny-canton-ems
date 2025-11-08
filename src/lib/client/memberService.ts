@@ -12,6 +12,7 @@ export interface Member {
   dob: Date;
   cantonEmail: string | null;
   position: 'MEMBER' | 'PROBATIONARY_MEMBER' | 'LIEUTENANT' | 'CAPTAIN' | 'TREASURER' | 'SECRETARY' | 'VICE_PRESIDENT' | 'PRESIDENT' | 'ALUMNI' | 'ADVISOR' | 'SENATOR' | 'HONOR_ROLL' | 'AUXILIARY';
+  isAdmin: boolean;
   major: string | null;
   membershipStanding: 'GOOD' | 'BAD';
   cantonCardId: string;
@@ -68,7 +69,7 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
 // Function to create a new member
 export const createMember = async (memberData: Partial<Member>): Promise<Member | null> => {
   try {
-    const response = await fetch('/api/members', {
+    const response = await fetch('/api/admin/members', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -91,7 +92,7 @@ export const createMember = async (memberData: Partial<Member>): Promise<Member 
 // Function to update a member
 export const updateMember = async (id: string, memberData: Partial<Member>): Promise<Member | null> => {
   try {
-    const response = await fetch(`/api/members/${id}`, {
+    const response = await fetch(`/api/admin/members/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -114,7 +115,7 @@ export const updateMember = async (id: string, memberData: Partial<Member>): Pro
 // Function to delete a member
 export const deleteMember = async (id: string): Promise<boolean> => {
   try {
-    const response = await fetch(`/api/members/${id}`, {
+    const response = await fetch(`/api/admin/members/${id}`, {
       method: 'DELETE',
     });
     

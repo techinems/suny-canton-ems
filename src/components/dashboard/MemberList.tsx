@@ -11,6 +11,7 @@ import { DataTable, Column, Action } from '@/components/DataTable';
 import { Member, getAllMembers, getMemberAvatarUrl, getFullName, deleteMember } from '@/lib/client/memberService';
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/auth/AuthContext';
 
 // Helper function to get badge color based on member position
 const getPositionColor = (position: string): string => {
@@ -68,6 +69,7 @@ export function MemberList() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -132,6 +134,11 @@ export function MemberList() {
             <Text size="xs" c="dimmed">
               {member.major || 'No major specified'}
             </Text>
+            {member.isAdmin && (
+              <Badge color="red" size="xs" mt={4}>
+                Admin
+              </Badge>
+            )}
           </div>
         </Group>
       )
@@ -177,12 +184,17 @@ export function MemberList() {
     }
   ];
 
-  const actions: Action<Member>[] = [
-    {
-      label: 'Edit Member',
-      icon: <IconEdit size="1rem" />,
-      href: (member) => `/dashboard/members/${member.id}`
-    },
+  const baseActions: Action<Member>[] = user?.isAdmin
+    ? [
+        {
+          label: 'Edit Member',
+          icon: <IconEdit size="1rem" />,
+          href: (member) => `/dashboard/members/${member.id}`,
+        },
+      ]
+    : [];
+
+  const adminActions: Action<Member>[] = [
     {
       label: 'Delete Member',
       icon: <IconTrash size="1rem" />,
@@ -190,19 +202,21 @@ export function MemberList() {
     }
   ];
 
+  const actions: Action<Member>[] = user?.isAdmin ? [...baseActions, ...adminActions] : baseActions;
+
   return (
     <DataTable<Member>
       data={members}
       columns={columns}
       actions={actions}
       loading={loading}
-      onRowClick={(member) => router.push(`/dashboard/members/${member.id}`)}
+      onRowClick={user?.isAdmin ? (member) => router.push(`/dashboard/members/${member.id}`) : undefined}
       emptyMessage="No members found"
-      confirmDelete={{
+      confirmDelete={user?.isAdmin ? {
         title: 'Confirm Deletion',
         message: (member) => `Are you sure you want to delete ${getFullName(member)}? This action cannot be undone.`,
         onConfirm: handleDeleteMember
-      }}
+      } : undefined}
     />
   );
 }

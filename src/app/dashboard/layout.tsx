@@ -24,14 +24,14 @@ export default function DashboardLayout({
 }) {
   const [opened, { toggle }] = useDisclosure();
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
 
   const navLinks = [
     { label: 'Dashboard', href: '/dashboard', icon: <IconHome style={{ width: rem(20) }} /> },
     { label: 'Calls', href: '/dashboard/calls', icon: <IconAmbulance style={{ width: rem(20) }} /> },
     { label: 'Members', href: '/dashboard/members', icon: <IconUsers style={{ width: rem(20) }} /> },
-    { label: 'Buildings', href: '/dashboard/buildings', icon: <IconBuildingCommunity style={{ width: rem(20) }} /> },
+    { label: 'Buildings', href: '/dashboard/buildings', icon: <IconBuildingCommunity style={{ width: rem(20) }} />, adminOnly: true },
     { label: 'Certifications', href: '/dashboard/certifications', icon: <IconCertificate style={{ width: rem(20) }} /> },
     { label: 'Inventory', href: '/dashboard/inventory', icon: <IconPackage style={{ width: rem(20) }} /> },
     { label: 'Profile', href: '/dashboard/profile', icon: <IconUser style={{ width: rem(20) }} /> },
@@ -65,7 +65,9 @@ export default function DashboardLayout({
             </Group>
             
             <Box>
-              {navLinks.map((link) => (
+              {navLinks
+                .filter((link) => !link.adminOnly || user?.isAdmin)
+                .map((link) => (
                 <NavLink
                   key={link.href}
                   label={link.label}

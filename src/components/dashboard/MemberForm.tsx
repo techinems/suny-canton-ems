@@ -12,13 +12,15 @@ import {
   Grid,
   Paper,
   Avatar,
-  Accordion
+  Accordion,
+  Switch
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useRouter } from 'next/navigation';
 import { Member, getMemberById, createMember, updateMember, getMemberAvatarUrl } from '@/lib/client/memberService';
 import { getBuildings } from '@/lib/client/buildingService';
 import { isEmail } from '@/lib/utils';
+import { useAuth } from '@/components/auth/AuthContext';
 
 interface MemberFormProps {
   memberId?: string;
@@ -33,7 +35,8 @@ const defaultMember: Partial<Member> = {
   roomNumber: undefined,
   gpa: 2.0,
   cantonCardId: '',
-  dob: new Date()
+  dob: new Date(),
+  isAdmin: false
 };
 
 export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
@@ -45,6 +48,7 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
   const [passwordConfirm, setPasswordConfirm] = useState<string>('');
   const [buildings, setBuildings] = useState<{ value: string; label: string }[]>([]);
   const router = useRouter();
+  const { user } = useAuth();
 
   // Fetch existing member data if editing
   useEffect(() => {
@@ -414,6 +418,15 @@ export function MemberForm({ memberId, isEditing = false }: MemberFormProps) {
                     onChange={(value) => handleChange('shirtSize', value)}
                     clearable
                   />
+
+                  {user?.isAdmin && (
+                    <Switch
+                      label="Administrator access"
+                      description="Admins can manage restricted areas like buildings."
+                      checked={Boolean(member.isAdmin)}
+                      onChange={(event) => handleChange('isAdmin', event.currentTarget.checked)}
+                    />
+                  )}
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>

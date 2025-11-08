@@ -11,6 +11,7 @@ interface User {
   emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  isAdmin: boolean;
 }
 
 interface AdditionalUserData {
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     emailVerified: session.user.emailVerified,
     createdAt: session.user.createdAt,
     updatedAt: session.user.updatedAt,
+    isAdmin: Boolean((session.user as { isAdmin?: boolean }).isAdmin),
   } : null;
 
   const login = useCallback(async (email: string, password: string) => {
