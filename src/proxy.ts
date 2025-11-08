@@ -7,7 +7,7 @@ import { auth } from './lib/auth';
 // Define paths that don't require authentication
 const publicPaths = ['/login', '/register', '/public', '/api/auth'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Get the path from the request
   const path = request.nextUrl.pathname;
 
