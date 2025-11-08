@@ -176,6 +176,7 @@ export function RegisterForm() {
         <Stack gap="md">
           {/* Basic Information */}
           <TextInput
+            id='register-email'
             label="Email"
             placeholder="your@email.com"
             leftSection={<IconMail size={16} />}
@@ -187,6 +188,7 @@ export function RegisterForm() {
           
           <Group grow>
             <PasswordInput
+              id='register-password'
               label="Password"
               placeholder="Your password"
               leftSection={<IconLock size={16} />}
@@ -197,6 +199,7 @@ export function RegisterForm() {
             />
             
             <PasswordInput
+              id='register-confirm-password'
               label="Confirm Password"
               placeholder="Confirm your password"
               leftSection={<IconLock size={16} />}
@@ -210,6 +213,7 @@ export function RegisterForm() {
           {/* Personal Information */}
           <Group grow>
             <TextInput
+              id="register-first-name"
               label="First Name"
               placeholder="John"
               leftSection={<IconUser size={16} />}
@@ -220,6 +224,7 @@ export function RegisterForm() {
             />
             
             <TextInput
+              id="register-last-name"
               label="Last Name"
               placeholder="Doe"
               leftSection={<IconUser size={16} />}
@@ -231,6 +236,7 @@ export function RegisterForm() {
           </Group>
 
           <TextInput
+            id="register-preferred-name"
             label="Preferred Name (Optional)"
             placeholder="What you'd like to be called"
             leftSection={<IconUser size={16} />}
@@ -240,6 +246,7 @@ export function RegisterForm() {
           />
 
           <DateInput
+            id="register-dob"
             label="Date of Birth"
             placeholder="Select your date of birth"
             required
@@ -250,6 +257,7 @@ export function RegisterForm() {
           />
 
           <TextInput
+            id="register-canton-email"
             label="Canton Email (Optional)"
             placeholder="your@canton.edu"
             leftSection={<IconMail size={16} />}
@@ -261,6 +269,7 @@ export function RegisterForm() {
           {/* EMS Information */}
           <Group grow>
             <Select
+              id="register-position"
               label="Position"
               placeholder="Select your position"
               data={positionOptions}
@@ -271,6 +280,7 @@ export function RegisterForm() {
             />
             
             <Select
+              id="register-shirt-size"
               label="Shirt Size"
               placeholder="Select shirt size"
               data={shirtSizeOptions}
@@ -283,6 +293,7 @@ export function RegisterForm() {
 
           <Group grow>
             <TextInput
+              id="register-major"
               label="Major"
               placeholder="Your major"
               size="md"
@@ -291,6 +302,7 @@ export function RegisterForm() {
             />
             
             <NumberInput
+              id="register-gpa"
               label="GPA"
               placeholder="3.5"
               min={0}
@@ -304,6 +316,7 @@ export function RegisterForm() {
 
           <Group grow>
             <TextInput
+              id="register-canton-card-id"
               label="Canton Card ID"
               placeholder="Your student ID"
               required
@@ -313,6 +326,7 @@ export function RegisterForm() {
             />
             
             <TextInput
+              id="register-phone-number"
               label="Phone Number"
               placeholder="(555) 123-4567"
               leftSection={<IconPhone size={16} />}
@@ -323,6 +337,7 @@ export function RegisterForm() {
           </Group>
 
           <Select
+            id="register-medical-level"
             label="Medical Level (Optional)"
             placeholder="Select your medical certification"
             data={medicalLevelOptions}
@@ -333,6 +348,7 @@ export function RegisterForm() {
 
           {/* Housing Information */}
           <Select
+            id="register-housing-type"
             label="Housing Type"
             placeholder="Select housing type"
             data={housingTypeOptions}
@@ -344,6 +360,7 @@ export function RegisterForm() {
 
           <Group grow>
             <TextInput
+              id="register-building"
               label="Building (if on campus)"
               placeholder="Building name"
               leftSection={<IconHome size={16} />}
@@ -353,6 +370,7 @@ export function RegisterForm() {
             />
             
             <NumberInput
+              id="register-room-number"
               label="Room Number (if on campus)"
               placeholder="Room number"
               min={0}
@@ -363,6 +381,7 @@ export function RegisterForm() {
           </Group>
 
           <Textarea
+            id="register-home-address"
             label="Home Address"
             placeholder="Your home address"
             size="md"
@@ -371,6 +390,7 @@ export function RegisterForm() {
           />
 
           <Textarea
+            id="register-local-address"
             label="Local Address (if different)"
             placeholder="Your local address while at school"
             size="md"
