@@ -72,6 +72,7 @@ export function LoginForm() {
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
           <TextInput
+            id="login-email"
             label="Email"
             placeholder="your@email.com"
             leftSection={<IconMail size={16} />}
@@ -82,6 +83,7 @@ export function LoginForm() {
           />
           
           <PasswordInput
+            id="login-password"
             label="Password"
             placeholder="Your password"
             leftSection={<IconLock size={16} />}
@@ -92,6 +94,7 @@ export function LoginForm() {
           />
           <Group justify="space-between">
             <Checkbox
+              id="login-remember-me"
               label="Remember me"
               {...form.getInputProps('rememberMe', { type: 'checkbox' })}
             />

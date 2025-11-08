@@ -44,7 +44,6 @@ export async function proxy(request: NextRequest) {
 
 // Configure which paths this middleware should run on
 export const config = {
-  runtime: 'nodejs',
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
