@@ -8,15 +8,99 @@ import {
   Grid, 
   Badge,
   Divider,
-  Box
+  Box,
+  Button,
+  FileButton,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
-import { Member, getMemberAvatarUrl, getFullName } from '@/lib/client/memberService';
+import { useState } from 'react';
+import { IconUpload, IconTrash } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import { Member, getMemberAvatarUrl, getFullName, uploadAvatar, deleteAvatar } from '@/lib/client/memberService';
+import { useAuth } from '@/components/auth/AuthContext';
 
 interface MemberDetailProps {
   member: Member;
 }
 
 export function MemberDetail({ member }: MemberDetailProps) {
+  const { user } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(getMemberAvatarUrl(member));
+  const isOwnProfile = user?.id === member.id;
+
+  // Handle avatar upload
+  const handleAvatarUpload = async (file: File | null) => {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      notifications.show({
+        title: 'Invalid file type',
+        message: 'Please upload an image file',
+        color: 'red',
+      });
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      notifications.show({
+        title: 'File too large',
+        message: 'Avatar must be less than 5MB',
+        color: 'red',
+      });
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const result = await uploadAvatar(file);
+      
+      if (result) {
+        setAvatarUrl(`/api/files/${result.file.id}`);
+        notifications.show({
+          title: 'Success',
+          message: 'Avatar uploaded successfully',
+          color: 'green',
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      notifications.show({
+        title: 'Error',
+        message: error instanceof Error ? error.message : 'Failed to upload avatar',
+        color: 'red',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Handle avatar deletion
+  const handleAvatarDelete = async () => {
+    try {
+      setUploading(true);
+      await deleteAvatar();
+      setAvatarUrl('');
+      notifications.show({
+        title: 'Success',
+        message: 'Avatar removed successfully',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Error deleting avatar:', error);
+      notifications.show({
+        title: 'Error',
+        message: error instanceof Error ? error.message : 'Failed to delete avatar',
+        color: 'red',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Helper function to format date to a readable format
   const formatDate = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -69,12 +153,46 @@ export function MemberDetail({ member }: MemberDetailProps) {
     <Paper withBorder p="lg" radius="md">
       <Stack>
         <Group>
-          <Avatar
-            src={getMemberAvatarUrl(member)}
-            alt={getFullName(member)}
-            size="xl"
-            radius="xl"
-          />
+          <Box pos="relative">
+            <Avatar
+              src={avatarUrl}
+              alt={getFullName(member)}
+              size="xl"
+              radius="xl"
+            />
+            {isOwnProfile && (
+              <Group gap={4} mt="xs">
+                <FileButton onChange={handleAvatarUpload} accept="image/*">
+                  {(props) => (
+                    <Tooltip label="Upload avatar">
+                      <ActionIcon
+                        {...props}
+                        variant="filled"
+                        color="blue"
+                        size="sm"
+                        loading={uploading}
+                      >
+                        <IconUpload size={14} />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </FileButton>
+                {avatarUrl && (
+                  <Tooltip label="Remove avatar">
+                    <ActionIcon
+                      variant="filled"
+                      color="red"
+                      size="sm"
+                      onClick={handleAvatarDelete}
+                      loading={uploading}
+                    >
+                      <IconTrash size={14} />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+              </Group>
+            )}
+          </Box>
           <Box>
             <Text size="xl" fw={700}>
               {getFullName(member)}

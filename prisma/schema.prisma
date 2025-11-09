@@ -13,7 +13,8 @@ model User {
   firstName          String?            @map("first_name")
   lastName           String?            @map("last_name")
   preferredName      String?            @map("preferred_name")
-  avatar             String?
+  avatar             String?            @unique @map("avatar")
+  avatarFile         File?              @relation("UserAvatar", fields: [avatar], references: [id], onDelete: SetNull)
   shirtSize          ShirtSize?         @map("shirt_size")
   dob                DateTime           @db.Date
   cantonEmail        String?            @map("canton_email")
@@ -243,6 +244,7 @@ model File {
   path         String   // Storage path relative to uploads directory
   uploadedBy   String   @map("uploaded_by")
   uploader     User     @relation("UserFiles", fields: [uploadedBy], references: [id], onDelete: Cascade)
+  userAvatar   User?    @relation("UserAvatar")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

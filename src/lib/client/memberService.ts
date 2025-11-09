@@ -140,6 +140,75 @@ export const getFullName = (member: Member): string => {
 
 // Function to get avatar URL
 export const getMemberAvatarUrl = (member: Member): string => {
-  // Return the avatar URL if it exists, otherwise return empty string
+  // If avatar is a file ID (cuid format), construct the file URL
+  if (member.avatar && member.avatar.length > 20) {
+    return `/api/files/${member.avatar}`;
+  }
+  // Fallback to legacy avatar URL or image field
   return member.avatar || member.image || '';
+};
+
+// Function to upload avatar
+export const uploadAvatar = async (file: File): Promise<{ user: any; file: any } | null> => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/profile/avatar', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload avatar');
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    throw error;
+  }
+};
+
+// Function to delete avatar
+export const deleteAvatar = async (): Promise<{ user: any } | null> => {
+  try {
+    const response = await fetch('/api/profile/avatar', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete avatar');
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error deleting avatar:', error);
+    throw error;
+  }
+};
+
+// Function to get avatar file info
+export const getAvatarInfo = async (): Promise<any | null> => {
+  try {
+    const response = await fetch('/api/profile/avatar');
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get avatar info');
+    }
+
+    const result = await response.json();
+    return result.file;
+  } catch (error) {
+    console.error('Error getting avatar info:', error);
+    throw error;
+  }
 };
