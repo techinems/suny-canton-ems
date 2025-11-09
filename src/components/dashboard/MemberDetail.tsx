@@ -28,6 +28,7 @@ export function MemberDetail({ member }: MemberDetailProps) {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(getMemberAvatarUrl(member));
+  const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
   const isOwnProfile = user?.id === member.id;
 
   // Handle avatar upload
@@ -153,7 +154,19 @@ export function MemberDetail({ member }: MemberDetailProps) {
     <Paper withBorder p="lg" radius="md">
       <Stack>
         <Group>
-          <Box pos="relative">
+          <Box
+            pos="relative"
+            tabIndex={0}
+            onMouseEnter={() => setIsHoveringAvatar(true)}
+            onMouseLeave={() => setIsHoveringAvatar(false)}
+            onFocusCapture={() => setIsHoveringAvatar(true)}
+            onBlurCapture={() => setIsHoveringAvatar(false)}
+            style={{
+              display: 'inline-flex',
+              borderRadius: 'var(--mantine-radius-xl)',
+              overflow: 'hidden',
+            }}
+          >
             <Avatar
               src={avatarUrl}
               alt={getFullName(member)}
@@ -161,23 +174,25 @@ export function MemberDetail({ member }: MemberDetailProps) {
               radius="xl"
             />
             {isOwnProfile && (
-              <Group gap={4} mt="xs">
-                <FileButton onChange={handleAvatarUpload} accept="image/*">
-                  {(props) => (
-                    <Tooltip label="Upload avatar">
-                      <ActionIcon
-                        {...props}
-                        variant="filled"
-                        color="blue"
-                        size="sm"
-                        loading={uploading}
-                      >
-                        <IconUpload size={14} />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                </FileButton>
-                {avatarUrl && (
+              <Box
+                pos="absolute"
+                top={0}
+                left={0}
+                w="100%"
+                h="100%"
+                display="flex"
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                  borderRadius: 'inherit',
+                  opacity: isHoveringAvatar || uploading ? 1 : 0,
+                  pointerEvents: isHoveringAvatar || uploading ? 'auto' : 'none',
+                  transition: 'opacity 150ms ease',
+                }}
+              >
+                {avatarUrl ? (
                   <Tooltip label="Remove avatar">
                     <ActionIcon
                       variant="filled"
@@ -189,8 +204,24 @@ export function MemberDetail({ member }: MemberDetailProps) {
                       <IconTrash size={14} />
                     </ActionIcon>
                   </Tooltip>
+                ) : (
+                  <FileButton onChange={handleAvatarUpload} accept="image/*">
+                    {(props) => (
+                      <Tooltip label="Upload avatar">
+                        <ActionIcon
+                          {...props}
+                          variant="filled"
+                          color="blue"
+                          size="sm"
+                          loading={uploading}
+                        >
+                          <IconUpload size={14} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </FileButton>
                 )}
-              </Group>
+              </Box>
             )}
           </Box>
           <Box>
