@@ -40,6 +40,7 @@ model User {
   certifications     Certification[]    @relation("UserCertifications")
   complianceChecks   ComplianceCheck[]  @relation("UserComplianceChecks")
   sessions           Session[]
+  files              File[]             @relation("UserFiles")
 
   @@map("users")
 }
@@ -231,4 +232,19 @@ model Verification {
   updatedAt  DateTime? @updatedAt @map("updated_at")
 
   @@map("verification")
+}
+
+model File {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  size         Int      // Size in bytes
+  path         String   // Storage path relative to uploads directory
+  uploadedBy   String   @map("uploaded_by")
+  uploader     User     @relation("UserFiles", fields: [uploadedBy], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("files")
 }
