@@ -16,7 +16,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCalendar, IconUpload, IconAlertCircle } from '@tabler/icons-react';
-import { createCertification, updateCertification, CreateCertificationData } from '@/lib/client/certificationService';
+import { createCertification, updateCertification, CertificationInput } from '@/lib/client/certificationService';
 
 interface CertificationFormProps {
   initialValues?: {
@@ -77,43 +77,26 @@ export function CertificationForm({ initialValues }: CertificationFormProps) {
         return;
       }
       
-      // Convert file to base64 string if it's a File object
-      let certScanData = '';
-      if (values.certScan && values.certScan instanceof File) {
-        certScanData = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(values.certScan as File);
-        });
-      }
-      
-      // Create a typesafe certification object using the new interface
-      const certData: Partial<CreateCertificationData> = {
+      const certData: CertificationInput = {
         certName: values.certName,
         certExpiration: values.certExpiration,
         certIssueDate: values.certIssueDate,
         certNumber: values.certNumber || null,
         issuingAuthority: values.issuingAuthority || null,
       };
-      
-      // Only include certScan if we have a new file
-      if (certScanData) {
-        certData.certScan = certScanData;
+
+      if (values.certScan) {
+        certData.certScan = values.certScan;
       }
       
       // For new certifications
       if (!isEditing) {
-        if (!certScanData) {
+        if (!values.certScan) {
           setError('Certificate scan is required for new certifications');
           setLoading(false);
           return;
         }
-        const newCertData: CreateCertificationData = {
-          ...certData,
-          certScan: certScanData,
-        } as CreateCertificationData;
-        await createCertification(newCertData);
+        await createCertification(certData);
       } 
       // For updates
       else if (initialValues?.id) {
