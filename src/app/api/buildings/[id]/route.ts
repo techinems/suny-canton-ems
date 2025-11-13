@@ -1,13 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
 
 // GET a single building by ID
 export async function GET(
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: RouteContext
 ) {
   try {
+    const { id } = await params;
     const building = await prisma.building.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {

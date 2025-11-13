@@ -1,5 +1,7 @@
 'use client';
 
+import type { FileRecord } from '@/lib/server/fileService';
+
 // Define the Member interface based on the Prisma User model
 export interface Member {
   id: string;
@@ -34,6 +36,13 @@ export interface Member {
   emailVerified: boolean;
   image: string | null;
   name: string | null;
+}
+
+type AvatarUser = Pick<Member, 'id' | 'avatar' | 'email' | 'firstName' | 'lastName'>;
+
+interface AvatarUploadResponse {
+  user: AvatarUser;
+  file: FileRecord;
 }
 
 // Function to get all members
@@ -149,7 +158,7 @@ export const getMemberAvatarUrl = (member: Member): string => {
 };
 
 // Function to upload avatar
-export const uploadAvatar = async (file: File): Promise<{ user: any; file: any } | null> => {
+export const uploadAvatar = async (file: File): Promise<AvatarUploadResponse | null> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -164,7 +173,7 @@ export const uploadAvatar = async (file: File): Promise<{ user: any; file: any }
       throw new Error(error.error || 'Failed to upload avatar');
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as AvatarUploadResponse;
     return result;
   } catch (error) {
     console.error('Error uploading avatar:', error);
@@ -173,7 +182,7 @@ export const uploadAvatar = async (file: File): Promise<{ user: any; file: any }
 };
 
 // Function to delete avatar
-export const deleteAvatar = async (): Promise<{ user: any } | null> => {
+export const deleteAvatar = async (): Promise<{ user: AvatarUser } | null> => {
   try {
     const response = await fetch('/api/profile/avatar', {
       method: 'DELETE',
@@ -184,7 +193,7 @@ export const deleteAvatar = async (): Promise<{ user: any } | null> => {
       throw new Error(error.error || 'Failed to delete avatar');
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as { user: AvatarUser };
     return result;
   } catch (error) {
     console.error('Error deleting avatar:', error);
@@ -193,7 +202,7 @@ export const deleteAvatar = async (): Promise<{ user: any } | null> => {
 };
 
 // Function to get avatar file info
-export const getAvatarInfo = async (): Promise<any | null> => {
+export const getAvatarInfo = async (): Promise<FileRecord | null> => {
   try {
     const response = await fetch('/api/profile/avatar');
 
@@ -205,7 +214,7 @@ export const getAvatarInfo = async (): Promise<any | null> => {
       throw new Error(error.error || 'Failed to get avatar info');
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as { file: FileRecord };
     return result.file;
   } catch (error) {
     console.error('Error getting avatar info:', error);

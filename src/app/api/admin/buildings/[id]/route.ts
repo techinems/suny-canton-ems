@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
 // GET /api/admin/buildings/:id - Retrieve building (admin only via middleware)
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
+    const { id } = await params;
     const building = await prisma.building.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {
@@ -36,9 +41,10 @@ export async function GET(
 // PUT /api/admin/buildings/:id - Update a building (admin only via middleware)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { name, address } = body;
 
@@ -50,7 +56,7 @@ export async function PUT(
     }
 
     const building = await prisma.building.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         address,
@@ -70,11 +76,12 @@ export async function PUT(
 // DELETE /api/admin/buildings/:id - Delete a building (admin only via middleware)
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
+    const { id } = await params;
     const building = await prisma.building.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {
@@ -102,7 +109,7 @@ export async function DELETE(
     }
 
     await prisma.building.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

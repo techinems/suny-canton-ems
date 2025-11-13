@@ -26,7 +26,10 @@ export default function EditCallPage() {
       const call = await getCallLog(id);
       if (call) {
         // Format the date for display
-        const date = new Date(call.call_received);
+        const callReceived = call.callReceived instanceof Date
+          ? call.callReceived
+          : new Date(call.callReceived);
+        const date = new Date(callReceived);
         setCallDate(date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       }
       setLoading(false);
