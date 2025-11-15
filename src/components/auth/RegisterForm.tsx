@@ -13,13 +13,14 @@ import {
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
-import { IconAlertCircle, IconMail, IconLock, IconUser, IconPhone, IconHome } from '@tabler/icons-react';
+import { IconAlertCircle, IconMail, IconLock, IconUser, IconPhone, IconHome, IconKey } from '@tabler/icons-react';
 import { useAuth } from './AuthContext';
 
 interface RegisterFormValues {
   email: string;
   password: string;
   confirmPassword: string;
+  registrationCode: string;
   firstName: string;
   lastName: string;
   preferredName: string;
@@ -90,6 +91,7 @@ export function RegisterForm() {
       email: '',
       password: '',
       confirmPassword: '',
+      registrationCode: '',
       firstName: '',
       lastName: '',
       preferredName: '',
@@ -118,6 +120,7 @@ export function RegisterForm() {
       dob: (value) => (value ? null : 'Date of birth is required'),
       cantonCardId: (value) => (value.length > 0 ? null : 'Canton Card ID is required'),
       gpa: (value) => (value >= 0 && value <= 4.0 ? null : 'GPA must be between 0.0 and 4.0'),
+      registrationCode: (value) => (value.length > 0 ? null : 'Registration code is required'),
     },
   });
 
@@ -126,6 +129,21 @@ export function RegisterForm() {
       setLoading(true);
       setError(null);
       
+      const response = await fetch('/api/auth/verify-registration-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: values.registrationCode.trim() }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        const message = typeof data?.message === 'string' ? data.message : 'Invalid registration code';
+        setError(message);
+        return;
+      }
+
       // Create the display name from first and last name
       const displayName = `${values.firstName} ${values.lastName}`;
       
@@ -209,6 +227,17 @@ export function RegisterForm() {
               {...form.getInputProps('confirmPassword')}
             />
           </Group>
+
+          <TextInput
+            id="register-code"
+            label="Registration Code"
+            placeholder="Enter registration code"
+            leftSection={<IconKey size={16} />}
+            required
+            size="md"
+            radius="md"
+            {...form.getInputProps('registrationCode')}
+          />
 
           {/* Personal Information */}
           <Group grow>
