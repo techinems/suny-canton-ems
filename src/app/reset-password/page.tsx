@@ -1,13 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Container, Paper, Stack, Title, Text, Divider, ThemeIcon } from '@mantine/core';
+import { Container, Paper, Stack, Title, Text, Divider, ThemeIcon, Loader } from '@mantine/core';
 import { IconLock } from '@tabler/icons-react';
 import { RequestPasswordResetForm } from '@/components/auth/RequestPasswordResetForm';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<ResetPasswordFallback />}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const tokenParam = searchParams.get('token');
   const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
@@ -41,6 +49,21 @@ export default function ResetPasswordPage() {
         ) : (
           <RequestPasswordResetForm onRequestComplete={setRequestedEmail} />
         )}
+      </Paper>
+    </Container>
+  );
+}
+
+function ResetPasswordFallback() {
+  return (
+    <Container size="sm" py={50}>
+      <Paper shadow="md" radius="lg" p="xl" withBorder>
+        <Stack gap="md" align="center">
+          <Loader color="blue" />
+          <Text size="sm" c="dimmed">
+            Loading reset form…
+          </Text>
+        </Stack>
       </Paper>
     </Container>
   );
