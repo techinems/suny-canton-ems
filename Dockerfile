@@ -35,6 +35,9 @@ ENV NEXT_PUBLIC_PB_URL=${NEXT_PUBLIC_PB_URL}
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
+# Generate Prisma Client for the target platform
+RUN npx prisma generate
+
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
@@ -59,6 +62,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 # Populate the standalone bundle with static assets so server.js can serve them.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Create uploads directory with proper ownership
+RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
 
 USER nextjs
 
