@@ -36,9 +36,9 @@ ENV NEXT_PUBLIC_PB_URL=${NEXT_PUBLIC_PB_URL}
 # ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN \
-  if [ -f yarn.lock ]; then yarn prisma generate && yarn run build; \
-  elif [ -f package-lock.json ]; then npx --yes prisma generate && npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm prisma generate && pnpm run build; \
+  if [ -f yarn.lock ]; then yarn run build; \
+  elif [ -f package-lock.json ]; then npm run build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -52,8 +52,6 @@ ENV NEXT_PUBLIC_PB_URL=${NEXT_PUBLIC_PB_URL}
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN apk add --no-cache libc6-compat openssl
-
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -61,27 +59,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 # Populate the standalone bundle with static assets so server.js can serve them.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-
-RUN <<'EOF'
-set -e
-cat <<'SCRIPT' > /entrypoint.sh
-#!/bin/sh
-set -eu
-
-if [ -f prisma/schema.prisma ]; then
-  echo "Applying database migrations with Prisma..."
-  npx --yes prisma migrate deploy
-fi
-
-exec "$@"
-SCRIPT
-chmod +x /entrypoint.sh
-EOF
 
 USER nextjs
 
@@ -92,5 +69,4 @@ ENV PORT=3000
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "server.js"]
